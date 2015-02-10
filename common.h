@@ -16,9 +16,21 @@
 #define COMMONBLOCK "1"
 #endif
 
+#ifndef MAXREADLENGTH
+#define MAXREADLENGTH "10000"
+#endif
+
+struct meeHash{
+    char Q[2];//key
+    double MEE;
+    UT_hash_handle hh;
+};
+
 int meeptools_append(int argc, char *argv[]);
 int meeptools_filter(int argc, char *argv[]);
 int meeptools_sort(int argc, char *argv[]);
 int meeptools_stats(int argc, char *argv[]);
 int meeptools_subset(int argc, char *argv[]);
 int meeptools_trim(int argc, char *argv[]);
+
+KSEQ_INIT(gzFile, gzread)

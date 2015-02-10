@@ -1,4 +1,5 @@
 #include "meeptools.h"
+//KSEQ_INIT(gzFile, gzread)
 
 static int usage()
 {
@@ -18,7 +19,14 @@ static int usage()
 
 int main(int argc, char *argv[])
 {
+    int debug=1;
+    
     if (argc < 2) return usage();
+    
+    if (debug==1){fprintf(stdout,"[%s] Initializing q2mee hash\n",__func__);}
+    init_q2mee_hash();
+    if (debug==1){fprintf(stdout,"[%s] Done\n",__func__);}
+    
     if (strcmp(argv[1], "append") == 0) return meeptools_append(argc-1, argv+1);
     else if (strcmp(argv[1], "filter") == 0) return meeptools_filter(argc-1, argv+1);
     else if (strcmp(argv[1], "sort") == 0) return meeptools_sort(argc-1, argv+1);
@@ -26,7 +34,7 @@ int main(int argc, char *argv[])
     else if (strcmp(argv[1], "subset") == 0) return meeptools_subset(argc-1, argv+1);
     else if (strcmp(argv[1], "trim") == 0) return meeptools_trim(argc-1, argv+1);
     else {
-            fprintf(stderr, "[main] unrecognized command '%s'\n", argv[1]);
+            fprintf(stderr, "[%s] unrecognized command '%s'\n", __func__,argv[1]);
             return 1;
     }
     return 0;
