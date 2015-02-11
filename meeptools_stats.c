@@ -29,6 +29,7 @@ int meeptools_stats(int argc, char *argv[])
         
     readSetStats allReadSetStats[RSTOTAL];
     
+    
     for (i=0;i<RSTOTAL;i++){
         if (!readSetStatsInit(&allReadSetStats[i]))
         {
