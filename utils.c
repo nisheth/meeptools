@@ -84,6 +84,49 @@ double calculate_qscore_extra(kseq_t *seq,int *l70q20,int *l70q25,int *l70q30)
     if (c30/l>=0.7) {*l70q30=1;} else {*l70q30=0;}
     return readQual/l;
 }
+
+int readSetStatsInit(readSetStats *rss)
+{
+    rss->nreads=0;
+    rss->nbases=0;
+    rss->summee=0.0;
+    rss->sumavgqual=0.0;
+    rss->minRL=(unsigned int)MAXREADLENGTH;
+    rss->maxRL=0;
+    
+    rss->avgRL=0.0;
+    rss->overallMEEP=0.0;
+    rss->avgRQ=0.0;
+    
+    return 1;
+}
+
+int readSetStatsAddRead(readSetStats *rss,int rl,double rq,double mee)
+{
+    rss->nreads++;
+    rss->nbases+=rl;
+    rss->summee+=mee;
+    rss->sumavgqual+=rq;
+    
+    if (rl>rss->maxRL) rss->maxRL=rl;
+    if (rl<rss->minRL) rss->minRL=rl;
+    
+    return 1;
+}
+
+int readSetStatsUpdate(readSetStats *rss)
+{
+    if (rss->nreads>0)
+    {
+        rss->avgRL=rss->nbases*1.0/rss->nreads;
+        rss->avgRQ=rss->sumavgqual/rss->nreads;
+    }
+    if (rss->nbases>0) rss->overallMEEP=rss->summee*100.0/rss->nbases;
+    
+    return 1;
+}
+
+
 /*
 int str_split( char * str, char delim, char ***array, int *length ) {
   char *p;
