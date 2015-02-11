@@ -1,5 +1,4 @@
 #include "meeptools.h"
-//KSEQ_INIT(gzFile, gzread)
 
 static int usage()
 {
@@ -19,13 +18,19 @@ static int usage()
 
 int main(int argc, char *argv[])
 {
-    int debug=1;
+    
+    char msg[STDSTRLEN];
     
     if (argc < 2) return usage();
     
-    if (debug==1){fprintf(stdout,"[%s] Initializing q2mee hash\n",__func__);}
-    init_q2mee_hash();
-    if (debug==1){fprintf(stdout,"[%s] Done\n",__func__);}
+    DebugMsg("Initializing q2mee hash");
+    
+    if (!init_q2mee_hash())
+    {
+        ErrorMsgExit("Initialization of q2mee failed!");
+    }
+    
+    DebugMsg("Done");
     
     if (strcmp(argv[1], "append") == 0) return meeptools_append(argc-1, argv+1);
     else if (strcmp(argv[1], "filter") == 0) return meeptools_filter(argc-1, argv+1);

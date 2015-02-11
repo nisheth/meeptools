@@ -22,6 +22,7 @@ int meeptools_stats(int argc, char *argv[])
     double readQual;
     double mee;
     double meep;
+    char msg[STDSTRLEN];
     
     char* readSetDescriptions[] = {RS_DESC};
         
@@ -30,8 +31,8 @@ int meeptools_stats(int argc, char *argv[])
     for (i=0;i<RSTOTAL;i++){
         if (!readSetStatsInit(&allReadSetStats[i]))
         {
-            fprintf(stderr,"[%s]: failed initialization of read set %d!\n",__func__,i);
-            exit(1);
+            sprintf(msg,"failed initialization of read set %s!",readSetDescriptions[i]);
+            ErrorMsgExit(msg);
         }
     }
         
@@ -53,16 +54,23 @@ int meeptools_stats(int argc, char *argv[])
         }
     }
     if (fflag==0){
-        fprintf(stderr, "[%s]: missing -f option\n",__func__);
+        ErrorMsg("missing -f option");
         return meeptools_stats_usage();
     }
     if (file_exists(fastqFilename)!=1) {
-        fprintf(stderr, "[%s]: %s file does not exist!\n",__func__,fastqFilename);
-        exit(1);
+        sprintf(msg, "%s file does not exist!",fastqFilename);
+        ErrorMsgExit(msg);
     }
     
-    fp = gzopen(fastqFilename, "rb"); 
+    if ((fp = gzopen(fastqFilename, "rb")) == NULL )
+    {
+        sprintf(msg, "%s file cannot be opened!",fastqFilename);
+        ErrorMsgExit(msg);    
+    } 
     seq = kseq_init(fp);
+
+    sprintf(msg,"FASTQ file %s opened.",fastqFilename);
+    DebugMsg(msg);
 
     while (0==0)
     {
@@ -152,6 +160,9 @@ int meeptools_stats(int argc, char *argv[])
     
     kseq_destroy(seq);
     gzclose(fp);
+    
+    sprintf(msg,"FASTQ file %s closed.",fastqFilename);
+    DebugMsg(msg);
     
     for (i=0;i<RSTOTAL;i++){
         if (!readSetStatsUpdate(&allReadSetStats[i]))

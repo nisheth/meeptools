@@ -13,12 +13,25 @@
 #endif
 
 #ifndef COMMONBLOCK
-#define COMMONBLOCK "1"
+#define COMMONBLOCK 1
 #endif
 
 #ifndef MAXREADLENGTH
-#define MAXREADLENGTH "10000"
+#define MAXREADLENGTH 10000
 #endif
+
+#ifndef STDSTRLEN
+#define STDSTRLEN 256
+#endif
+
+#ifdef DEBUG
+#define DebugMsg(msg) fprintf(stderr,"[%s]: %s\n",__func__,msg)
+#else
+#define DebugMsg(msg) NULL
+#endif
+
+#define ErrorMsg(msg) fprintf(stderr,"ERROR [%s]: %s\n",__func__,msg)
+#define ErrorMsgExit(msg) {fprintf(stderr,"ERROR [%s]: %s\n",__func__,msg);exit(1);}
 
 struct meeHash{
     char Q[2];//key

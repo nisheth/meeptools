@@ -37,8 +37,9 @@ void init_q2mee_hash()
 
 void seq_is_invalid(kseq_t *seq,char *fastqFilename)
 {
-    fprintf(stderr,"[%s]: seqid %s, sequence string length=%d, quality string length=%d\n",__func__,seq->name.s,(int)strlen(seq->seq.s),(int)strlen(seq->qual.s));
-    exit(1);
+    char msg[STDSTRLEN];
+    sprintf(msg,"seqid %s, sequence string length=%d, quality string length=%d.",seq->name.s,(int)strlen(seq->seq.s),(int)strlen(seq->qual.s));
+    ErrorMsgExit(msg);
 }
 
 double calculate_mee(kseq_t *seq)
@@ -57,13 +58,15 @@ double calculate_mee(kseq_t *seq)
 
 double calculate_qscore(kseq_t *seq)
 {
-    int readQual=0,i,l;
+    unsigned int readQual=0,i,l;
     l=seq->qual.l;
     if (l==0) return 0.0;
     for (i=0;i<l;i++) {
-        readQual+=(seq->qual.s[i]-'!');
+//        readQual+=(seq->qual.s[i]-'!');
+        readQual+=seq->qual.s[i];
     }
-    return readQual/l;
+    readQual-=(l*'!');
+    return readQual*1.0/l;
 }
 
 double calculate_qscore_extra(kseq_t *seq,int *l70q20,int *l70q25,int *l70q30)
