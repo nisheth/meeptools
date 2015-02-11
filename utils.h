@@ -13,9 +13,15 @@ typedef struct
     double sumavgqual;
     unsigned int minRL;
     unsigned int maxRL;
+    
+    unsigned long long int nreads_meep1;
+    unsigned long long int nreads_meep2;
+    
     double avgRL;
     double overallMEEP;
     double avgRQ;
+    double pmeep1; //percent reads with MEEP1
+    double pmeep2; //percent reads with MEEP2
 }readSetStats;
 
 void init_q2mee_hash();

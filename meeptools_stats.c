@@ -6,6 +6,7 @@ static int meeptools_stats_usage()
     fprintf(stderr, "\n");
     fprintf(stderr, "Usage:   meeptools stats [options] \n\n Generates MEEP score and other stats for fastq file.\n\n");
     fprintf(stderr, "Options: -f FILE  FASTQ FILE\n");
+    fprintf(stderr, "         -s       Output subset stats also.\n");
     fprintf(stderr, "         -h       help\n");
     fprintf(stderr, "\n");
     return 1;
@@ -15,6 +16,7 @@ int meeptools_stats(int argc, char *argv[])
 {
     int i,c,l,l70q20,l70q25,l70q30;
     int fflag=0;
+    int sflag=0;
     char *fastqFilename;
     gzFile fp;
     kseq_t *seq;
@@ -35,13 +37,16 @@ int meeptools_stats(int argc, char *argv[])
         }
     }
         
-    while ((c = getopt(argc, argv, "f:h?")) != -1)
+    while ((c = getopt(argc, argv, "f:sh?")) != -1)
     {
         switch (c)
         {
         case 'f':
             fflag = 1;
             fastqFilename = strdup(optarg);
+            break;
+        case 's':
+            sflag = 1;
             break;
         case 'h':
             return meeptools_stats_usage();
@@ -88,69 +93,72 @@ int meeptools_stats(int argc, char *argv[])
             fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSALL);
             exit(1);
         }
-        if (l70q20)
+        if (sflag)
         {
-            if (!readSetStatsAddRead(&allReadSetStats[RSL70Q20],l,readQual,mee)) 
+            if (l70q20)
             {
-                fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSL70Q20);
-                exit(1);
-            }    
-        }
-        if (l70q25)
-        {
-            if (!readSetStatsAddRead(&allReadSetStats[RSL70Q25],l,readQual,mee)) 
+                if (!readSetStatsAddRead(&allReadSetStats[RSL70Q20],l,readQual,mee)) 
+                {
+                    fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSL70Q20);
+                    exit(1);
+                }    
+            }
+            if (l70q25)
             {
-                fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSL70Q25);
-                exit(1);
-            }    
-        }
-        if (l70q30)
-        {
-            if (!readSetStatsAddRead(&allReadSetStats[RSL70Q30],l,readQual,mee)) 
+                if (!readSetStatsAddRead(&allReadSetStats[RSL70Q25],l,readQual,mee)) 
+                {
+                    fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSL70Q25);
+                    exit(1);
+                }    
+            }
+            if (l70q30)
             {
-                fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSL70Q30);
-                exit(1);
-            }    
-        }
-        if (readQual>=20)
-        {
-            if (!readSetStatsAddRead(&allReadSetStats[RSQ20],l,readQual,mee)) 
+                if (!readSetStatsAddRead(&allReadSetStats[RSL70Q30],l,readQual,mee)) 
+                {
+                    fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSL70Q30);
+                    exit(1);
+                }    
+            }
+            if (readQual>=20)
             {
-                fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSQ20);
-                exit(1);
-            }    
-        }
-        if (readQual>=25)
-        {
-            if (!readSetStatsAddRead(&allReadSetStats[RSQ25],l,readQual,mee)) 
+                if (!readSetStatsAddRead(&allReadSetStats[RSQ20],l,readQual,mee)) 
+                {
+                    fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSQ20);
+                    exit(1);
+                }    
+            }
+            if (readQual>=25)
             {
-                fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSQ25);
-                exit(1);
-            }    
-        }
-        if (readQual>=30)
-        {
-            if (!readSetStatsAddRead(&allReadSetStats[RSQ30],l,readQual,mee)) 
+                if (!readSetStatsAddRead(&allReadSetStats[RSQ25],l,readQual,mee)) 
+                {
+                    fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSQ25);
+                    exit(1);
+                }    
+            }
+            if (readQual>=30)
             {
-                fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSQ30);
-                exit(1);
-            }    
-        }
-        if (meep<1)
-        {
-            if (!readSetStatsAddRead(&allReadSetStats[RSMEEP1],l,readQual,mee)) 
+                if (!readSetStatsAddRead(&allReadSetStats[RSQ30],l,readQual,mee)) 
+                {
+                    fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSQ30);
+                    exit(1);
+                }    
+            }
+            if (meep<1)
             {
-                fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSMEEP1);
-                exit(1);
-            }    
-        }
-        if (meep<2)
-        {
-            if (!readSetStatsAddRead(&allReadSetStats[RSMEEP2],l,readQual,mee)) 
+                if (!readSetStatsAddRead(&allReadSetStats[RSMEEP1],l,readQual,mee)) 
+                {
+                    fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSMEEP1);
+                    exit(1);
+                }    
+            }
+            if (meep<2)
             {
-                fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSMEEP2);
-                exit(1);
-            }    
+                if (!readSetStatsAddRead(&allReadSetStats[RSMEEP2],l,readQual,mee)) 
+                {
+                    fprintf(stderr,"[%s]: failed adding read to read set %d!\n",__func__,RSMEEP2);
+                    exit(1);
+                }    
+            }
         }
     }
     
@@ -169,10 +177,18 @@ int meeptools_stats(int argc, char *argv[])
     }
     
     
-    fprintf(stdout,"\nNreads\tPercent_reads\tNbases\tPercent_bases\tminRL\tmaxRL\tavgRL\tavgRQ\toverallMEEP\tDescription\n\n");
-    for (i=0;i<RSTOTAL;i++)
+    fprintf(stdout,"\nNreads\tPercent_reads\tNbases\tPercent_bases\tminRL\tmaxRL\tavgRL\tavgRQ\toverallMEEP\tNreads_MEEP1\tNreads_MEEP2\tDescription\n\n");
+    if (sflag)
     {
-        fprintf(stdout,"%llu\t%.2f\t%llu\t%.2f\t%u\t%u\t%.2f\t%.2f\t%.4f\t%s\n", \
+        c=RSTOTAL;
+    }
+    else
+    {
+        c=1;
+    }
+    for (i=0;i<c;i++)
+    {
+        fprintf(stdout,"%llu\t%.2f\t%llu\t%.2f\t%u\t%u\t%.2f\t%.2f\t%.4f\t%llu\t%llu\t%s\n", \
         allReadSetStats[i].nreads, \
         (allReadSetStats[i].nreads*1.0/allReadSetStats[RSALL].nreads)*100.0, \
         allReadSetStats[i].nbases, \
@@ -182,6 +198,8 @@ int meeptools_stats(int argc, char *argv[])
         allReadSetStats[i].avgRL, \
         allReadSetStats[i].avgRQ, \
         allReadSetStats[i].overallMEEP, \
+        allReadSetStats[i].nreads_meep1, \
+        allReadSetStats[i].nreads_meep2, \
         readSetDescriptions[i]);
     }    
     

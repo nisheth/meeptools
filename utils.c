@@ -100,6 +100,10 @@ int readSetStatsInit(readSetStats *rss)
     rss->avgRL=0.0;
     rss->overallMEEP=0.0;
     rss->avgRQ=0.0;
+    rss->nreads_meep1=0;
+    rss->nreads_meep2=0;
+    rss->pmeep1=0.0;
+    rss->pmeep2=0.0;
     
     return 1;
 }
@@ -113,6 +117,8 @@ int readSetStatsAddRead(readSetStats *rss,int rl,double rq,double mee)
     
     if (rl>rss->maxRL) rss->maxRL=rl;
     if (rl<rss->minRL) rss->minRL=rl;
+    if (mee*100.0/rl<1) rss->nreads_meep1++;
+    if (mee*100.0/rl<2) rss->nreads_meep2++;
     
     return 1;
 }
@@ -123,6 +129,8 @@ int readSetStatsUpdate(readSetStats *rss)
     {
         rss->avgRL=rss->nbases*1.0/rss->nreads;
         rss->avgRQ=rss->sumavgqual/rss->nreads;
+        rss->pmeep1=(rss->nreads_meep1*1.0/rss->nreads)*100.0;
+        rss->pmeep2=(rss->nreads_meep2*1.0/rss->nreads)*100.0;     
     }
     if (rss->nbases>0) rss->overallMEEP=rss->summee*100.0/rss->nbases;
     
