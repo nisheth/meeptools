@@ -129,8 +129,46 @@ int readSetStatsUpdate(readSetStats *rss)
     return 1;
 }
 
+int seq_write_to_file(kseq_t *seq,gzFile fpout,double meep,double mee,double readQual,int write_mee,int write_readQual)
+{
+    char linebuffer[2 * MAXREADLENGTH];
+    char commentMEEPtmp[STDSTRLEN];
+    char commentMEEP[STDSTRLEN];
+    
+    //printf("%s\t%d\n",seq->comment.s,seq->comment.l);exit(1);
+    
+    if (write_mee && write_readQual) {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f:QUAL=%.2f",meep,mee,readQual);
+    }
+    else if(write_mee)
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f",meep,mee);
+    }
+    else if(write_readQual)
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:QUAL=%.2f",meep,readQual);
+    }
+    else
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f",meep);
+    }
+    
+    if (seq->comment.l)
+    {
+        sprintf(commentMEEP,"%s:%s",seq->comment.s,commentMEEPtmp);
+    }
+    else
+    {
+        sprintf(commentMEEP,"%s",commentMEEPtmp);
+    }
+     
+    sprintf(linebuffer,"@%s %s\n%s\n+\n%s\n",seq->name.s,commentMEEP,seq->seq.s,seq->qual.s);  
+    gzwrite(fpout,linebuffer,strlen(linebuffer));
+    
+    return 1;
+}
 
-/*
+
 int str_split( char * str, char delim, char ***array, int *length ) {
   char *p;
   char **res;
@@ -146,7 +184,7 @@ int str_split( char * str, char delim, char ***array, int *length ) {
   }
 
   // allocate dynamic array
-  res = calloc( 1, count * sizeof(char *));
+  res = calloc( 1, (count+1) * sizeof(char *));
   if( !res ) return -1;
 
   p = str;
@@ -155,13 +193,13 @@ int str_split( char * str, char delim, char ***array, int *length ) {
     p = strchr(p, 0 );    // Look for next null
     p++; // Start of next string
   }
-
+  res[count]=p;
   *array = res;
-  *length = count;
+  *length = count+1;
 
-  return 0;
+  return 1;
 }
-
+/*
 example:
 char str[] = "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC,";
 

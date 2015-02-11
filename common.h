@@ -24,6 +24,10 @@
 #define STDSTRLEN 256
 #endif
 
+#ifndef PRINTINTERVAL
+#define PRINTINTERVAL 10000
+#endif
+
 #ifdef DEBUG
 #define DebugMsg(msg) fprintf(stderr,"[%s]: %s\n",__func__,msg)
 #else
@@ -31,6 +35,7 @@
 #endif
 
 #define ErrorMsg(msg) fprintf(stderr,"ERROR [%s]: %s\n",__func__,msg)
+#define PrintMsg(msg) fprintf(stderr,"MESSAGE [%s]: %s\n",__func__,msg)
 #define ErrorMsgExit(msg) {fprintf(stderr,"ERROR [%s]: %s\n",__func__,msg);exit(1);}
 
 struct meeHash{

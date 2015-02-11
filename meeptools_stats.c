@@ -4,9 +4,9 @@
 static int meeptools_stats_usage()
 {
     fprintf(stderr, "\n");
-    fprintf(stderr, "Usage:   meeptools stats [options] \n\n");
+    fprintf(stderr, "Usage:   meeptools stats [options] \n\n Generates MEEP score and other stats for fastq file.\n\n");
     fprintf(stderr, "Options: -f FILE  FASTQ FILE\n");
-    fprintf(stderr, "         -?       help\n");
+    fprintf(stderr, "         -h       help\n");
     fprintf(stderr, "\n");
     return 1;
 }
@@ -15,13 +15,12 @@ int meeptools_stats(int argc, char *argv[])
 {
     int i,c,l,l70q20,l70q25,l70q30;
     int fflag=0;
-    int debug=0;
     char *fastqFilename;
     gzFile fp;
     kseq_t *seq;
-    double readQual;
-    double mee;
-    double meep;
+    double readQual=0.0;
+    double mee=0.0;
+    double meep=0.0;
     char msg[STDSTRLEN];
     
     char* readSetDescriptions[] = {RS_DESC};
@@ -36,18 +35,15 @@ int meeptools_stats(int argc, char *argv[])
         }
     }
         
-    while ((c = getopt(argc, argv, "df:")) != -1)
+    while ((c = getopt(argc, argv, "f:h?")) != -1)
     {
         switch (c)
         {
-        case 'd':
-            debug = 1;
-            break;
         case 'f':
             fflag = 1;
             fastqFilename = strdup(optarg);
             break;
-        case '?':
+        case 'h':
             return meeptools_stats_usage();
         default:
             return meeptools_stats_usage();
@@ -77,7 +73,7 @@ int meeptools_stats(int argc, char *argv[])
         l = kseq_read(seq);
         if (l == -1) break;
         if (l == -2) {
-            fprintf(stderr,"[%s]: Invalid sequence detected!\n",__func__);
+            ErrorMsg("Invalid sequence detected!");
             seq_is_invalid(seq,fastqFilename);
         }
 

@@ -1,7 +1,9 @@
 CC=		gcc
 
 CFLAGS=		-g -Wall -O2 -m64 
+
 CFLAGS+=	-DDEBUG
+
 LFLAGS=		-lm -lz
 
 SRCS = 		utils.c \
