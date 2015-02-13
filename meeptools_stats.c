@@ -80,14 +80,14 @@ int meeptools_stats(int argc, char *argv[])
         if (l == -1) break;
         if (l == -2) {
             ErrorMsg("Invalid sequence detected!");
-            seq_is_invalid(seq,fastqFilename);
+            seqIsInvalid(seq,fastqFilename);
         }
 
-        mee = calculate_mee(seq);
+        mee = seqCalculateMEE(seq);
 
         meep = mee*100.0/l;
 
-        readQual = calculate_qscore_extra(seq,&l70q20,&l70q25,&l70q30);
+        readQual = seqCalculateQScoreExtra(seq,&l70q20,&l70q25,&l70q30);
         
         if (!readSetStatsAddRead(&allReadSetStats[RSALL],l,readQual,mee)) 
         {
@@ -177,8 +177,8 @@ int meeptools_stats(int argc, char *argv[])
         }
     }
     
-    
-    fprintf(stdout,"\nNreads\tPercent_reads\tNbases\tPercent_bases\tminRL\tmaxRL\tavgRL\tavgRQ\toverallMEEP\tNreads_MEEP1\tNreads_MEEP2\tDescription\n\n");
+
+    readSetStatsPrintHeader();    
     if (sflag)
     {
         c=RSTOTAL;
@@ -189,23 +189,12 @@ int meeptools_stats(int argc, char *argv[])
     }
     for (i=0;i<c;i++)
     {
-        fprintf(stdout,"%llu\t%.2f\t%llu\t%.2f\t%u\t%u\t%.2f\t%.2f\t%.4f\t%llu\t%llu\t%s\n", \
-        allReadSetStats[i].nreads, \
-        (allReadSetStats[i].nreads*1.0/allReadSetStats[RSALL].nreads)*100.0, \
-        allReadSetStats[i].nbases, \
-        (allReadSetStats[i].nbases*1.0/allReadSetStats[RSALL].nbases)*100.0, \
-        allReadSetStats[i].minRL, \
-        allReadSetStats[i].maxRL, \
-        allReadSetStats[i].avgRL, \
-        allReadSetStats[i].avgRQ, \
-        allReadSetStats[i].overallMEEP, \
-        allReadSetStats[i].nreads_meep1, \
-        allReadSetStats[i].nreads_meep2, \
-        readSetDescriptions[i]);
+        readSetStatsPrint(&allReadSetStats[i],&allReadSetStats[RSALL],readSetDescriptions[i]);
     }    
     
     
     return 1;
 }
+
 
 

@@ -120,15 +120,15 @@ int meeptools_append(int argc, char *argv[])
             if (l == -2)
             {
                 ErrorMsg("Invalid sequence detected!");
-                seq_is_invalid(seq,inputFastqs[i]);
+                seqIsInvalid(seq,inputFastqs[i]);
             }
 
             nreads++;
-            mee = calculate_mee(seq);
+            mee = seqCalculateMEE(seq);
             meep = mee*100.0/l;
-            if (qflag) readQual = calculate_qscore(seq);
+            if (qflag) readQual = seqCalculateQScore(seq);
             
-            if (!seq_write_to_file(seq,fpout,meep,mee,readQual,mflag,qflag)) {
+            if (!seqWriteToFileWithMateNumber(seq,fpout,meep,mee,readQual,mflag,qflag,0)) {
                 sprintf(msg,"Writing seqid %s to file %s failed!",seq->name.s,outputFastqs[i]);
                 ErrorMsgExit(msg);
             }

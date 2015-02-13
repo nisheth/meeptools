@@ -35,14 +35,14 @@ void init_q2mee_hash()
     }
 }
 
-void seq_is_invalid(kseq_t *seq,char *fastqFilename)
+void seqIsInvalid(kseq_t *seq,char *fastqFilename)
 {
     char msg[STDSTRLEN];
     sprintf(msg,"seqid %s, sequence string length=%d, quality string length=%d.",seq->name.s,(int)strlen(seq->seq.s),(int)strlen(seq->qual.s));
     ErrorMsgExit(msg);
 }
 
-double calculate_mee(kseq_t *seq)
+double seqCalculateMEE(kseq_t *seq)
 {
     int i;
     char q[2];
@@ -56,7 +56,7 @@ double calculate_mee(kseq_t *seq)
     return mee;
 }
 
-double calculate_qscore(kseq_t *seq)
+double seqCalculateQScore(kseq_t *seq)
 {
     unsigned int readQual=0,i,l;
     l=seq->qual.l;
@@ -69,7 +69,7 @@ double calculate_qscore(kseq_t *seq)
     return readQual*1.0/l;
 }
 
-double calculate_qscore_extra(kseq_t *seq,int *l70q20,int *l70q25,int *l70q30)
+double seqCalculateQScoreExtra(kseq_t *seq,int *l70q20,int *l70q25,int *l70q30)
 {
     int readQual=0,i,l,q;
     int c20=0,c25=0,c30=0;
@@ -137,13 +137,48 @@ int readSetStatsUpdate(readSetStats *rss)
     return 1;
 }
 
-int seq_write_to_file(kseq_t *seq,gzFile fpout,double meep,double mee,double readQual,int write_mee,int write_readQual)
+void readSetStatsPrintHeader()
+{
+    fprintf(stdout,"\nNreads\tPercent_reads\tNbases\tPercent_bases\tminRL\tmaxRL\tavgRL\tavgRQ\toverallMEEP\tNreads_MEEP1\tNreads_MEEP2\tDescription\n\n");
+}
+
+void readSetStatsPrint(readSetStats *rss,readSetStats *rssBase,char *desc)
+{
+	fprintf(stdout,"%llu\t%.2f\t%llu\t%.2f\t%u\t%u\t%.2f\t%.2f\t%.4f\t%llu\t%llu\t%s\n", \
+	rss->nreads, \
+	(rss->nreads*1.0/rssBase->nreads)*100.0, \
+	rss->nbases, \
+	(rss->nbases*1.0/rssBase->nbases)*100.0, \
+	rss->minRL, \
+	rss->maxRL, \
+	rss->avgRL, \
+	rss->avgRQ, \
+	rss->overallMEEP, \
+	rss->nreads_meep1, \
+	rss->nreads_meep2, \
+	desc);
+}
+
+
+int seqWriteToFileWithMateNumber(kseq_t *seq,gzFile fpout,double meep,double mee,double readQual,int write_mee,int write_readQual,int mate_number)
 {
     char linebuffer[2 * MAXREADLENGTH];
     char commentMEEPtmp[STDSTRLEN];
     char commentMEEP[STDSTRLEN];
+    char nametmp[STDSTRLEN];
+    char word[STDSTRLEN];
     
-    //printf("%s\t%d\n",seq->comment.s,seq->comment.l);exit(1);
+    if (mate_number < 0 || mate_number >2) ErrorMsgExit("Invalid mate number supplied!");
+    
+    if (mate_number==1 || mate_number==2)
+    {
+	sprintf(word,"/%d",mate_number);
+	if(strstr(seq->name.s,word)==NULL) sprintf(nametmp,"%s/%d",seq->name.s,mate_number);
+    }
+    else
+    {
+	sprintf(nametmp,"%s",seq->name.s);
+    }
     
     if (write_mee && write_readQual) {
         sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f:QUAL=%.2f",meep,mee,readQual);
@@ -170,7 +205,7 @@ int seq_write_to_file(kseq_t *seq,gzFile fpout,double meep,double mee,double rea
         sprintf(commentMEEP,"%s",commentMEEPtmp);
     }
      
-    sprintf(linebuffer,"@%s %s\n%s\n+\n%s\n",seq->name.s,commentMEEP,seq->seq.s,seq->qual.s);  
+    sprintf(linebuffer,"@%s %s\n%s\n+\n%s\n",nametmp,commentMEEP,seq->seq.s,seq->qual.s);  
     gzwrite(fpout,linebuffer,strlen(linebuffer));
     
     return 1;
@@ -231,4 +266,5 @@ int main() {
   return 0;
 }
  */
+
 
