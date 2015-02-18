@@ -1,6 +1,13 @@
 #include "utils.h"
 extern struct meeHash *q2mee=NULL;
-
+/*
+int floatcomp(const void* elem1, const void* elem2)
+{
+    if(*(const float*)elem1 < *(const float*)elem2)
+        return -1;
+    return *(const float*)elem1 > *(const float*)elem2;
+}
+*/
 int file_exists(const char* filename)
 {
     int result;
@@ -55,6 +62,133 @@ double seqCalculateMEE(kseq_t *seq)
     }
     return mee;
 }
+
+double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *newstart,int *newl,double *newReadQuality, double *untrimmedMEE, double *untrimmedReadQuality)
+{
+    int i,j;
+    int readQual=0;
+    char q[2];
+    int l=seq->qual.l;
+    double mee[l];
+    double meesorted[l];
+    double minsummee=-1.0;
+    double summeeHash[l][l];
+    double summeeCut[l];
+    struct meeHash *s;
+    double meep=0.0;
+    int newstarttmp=-1;
+    int newltmp=-1;
+    double summee=0.0;
+    int found=0;
+    int maxlen=-1;
+    double a;
+    
+    *newstart=-1;
+    *newl=-1;
+    
+    for (i=0;i<l;i++) 
+    {
+        sprintf(q,"%c\0",seq->qual.s[i]);
+        HASH_FIND_STR(q2mee,q,s);
+        mee[i]=s->MEE;
+        meesorted[i]=mee[i];
+	summee+=mee[i];
+	readQual+=seq->qual.s[i];
+	for (j=0;j<l;j++)
+	{
+		summeeHash[i][j]=-1.0;
+	}
+	summeeCut[i]=mcut*(l-i)/100;
+    }
+    
+    *untrimmedMEE=summee;
+    readQual-=(l*'!');
+    *untrimmedReadQuality=readQual*1.0/l;
+    
+    if (summee < summeeCut[0])
+    {
+	*newstart=0;
+	*newl=l;
+	*newReadQuality=*untrimmedReadQuality;
+	return summee;
+    }
+
+
+    for (i = 0; i < l; ++i)
+    {
+        for (j = i + 1; j < l; ++j)
+        {
+            if (meesorted[i] > meesorted[j])
+            {
+                a =  meesorted[i];
+                meesorted[i] = meesorted[j];
+                meesorted[j] = a;
+            }
+        }
+    }
+
+//    qsort(meesorted, l, sizeof(float), floatcomp);
+
+    summee=0.0;
+    for(i=0;i<l;i++) {
+    	summee+=meesorted[i];
+    	//printf("i=%d, l-i=%d, summee=%.4f, meesorted[i]=%.4f, summeeCut[i]=%.4f\n",i,l-i,summee,meesorted[i],summeeCut[i]);
+    	if ((summee > summeeCut[i]) && (found==0))
+    	{
+    	    found=1;
+    		maxlen=i;
+    		//break;
+    	}
+    }
+    found=0;
+    //printf("maxlen= %d\n",maxlen);
+
+    summeeHash[0][0]=summee;
+    summeeHash[1][0]=summee-mee[l-1];
+    for (i=l-1;i>lcut-1;i--) 
+    {
+	for (j=0;j<l-i+1;j++) 
+	{
+	    if (j==0)
+	    {
+		summeeHash[l-(i-1)][j]=summeeHash[l-i][j]-mee[i-1];
+	    }
+	    else
+	    {
+	        summeeHash[l-i][j]=summeeHash[l-i][j-1]-mee[j-1]+mee[j+i-1];
+	    }
+			//printf("maxlen=%d,len=%d, l-i=%d, j=%d, summeHash=%.4f summeeCut=%.4f meep=%.4f mcut=%.4f, lcut=%d\n",maxlen,i,l-i,j,summeeHash[l-i][j],summeeCut[l-i],summeeHash[l-i][j]*100.0/i,mcut,lcut);
+			//printf("len=%d, l-i=%d, j=%d, summeeHash=%.4f summeeCut=%.4f meep=%.4f mcut=%.4f\n",i,l-i,j,summeeHash[l-i][j],summeeCut[l-i],summeeHash[l-i][j]*100.0/i,mcut);
+	    if ( summeeHash[l-i][j] < summeeCut[l-i] ) 
+	    {
+		found=1;
+		*newstart=j;
+		*newl=i;
+	    }
+	}
+	if ( found == 1 ) 
+        {
+	    readQual=0;
+	    for ( i = (*newstart) ; i <= (*newl) ; i++ )
+	    {
+	        readQual+=seq->qual.s[i];
+	    }
+	    readQual-=(l*'!');
+    	*newReadQuality=readQual*1.0/(*newl);
+    	printf("maxlen=%d, ",maxlen);
+    	printf("newstart=%d, ",*newstart);
+    	printf("newl=%d, ",*newl);
+    	printf("untrimmedmeep=%.4f, ",*untrimmedMEE*100.0/l);
+    	printf("newmeep=%4f, ",summeeHash[l-*newl][*newstart]*100.0/(*newl));
+    	printf("untrimmedQ=%.2f, ",*untrimmedReadQuality);
+    	printf("newQ=%.2f\n",*newReadQuality);
+	    return summeeHash[l-*newl][*newstart];
+	}
+    }
+    return -1.0;
+}
+
+
 
 double seqCalculateQScore(kseq_t *seq)
 {
@@ -266,5 +400,6 @@ int main() {
   return 0;
 }
  */
+
 
 

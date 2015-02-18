@@ -7,7 +7,7 @@ static int meeptools_filter_usage(int extra)
     fprintf(stderr, "         -o FILE         FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -c FLOAT        MEEP score cut off (between 0 and 20)\n");
     fprintf(stderr, "Optional:\n");
-    fprintf(stderr, "         -l INTEGER      read length cut off\n");
+    fprintf(stderr, "         -l INTEGER      read length cut off (default %d)\n",DEFAULTLCUT);
     fprintf(stderr, "         -s FILE         FASTQ FILE for single read (read1 or read2) meeting MEEP score cut off\n");
     fprintf(stderr, "         -q              Append read quality to read comment\n");
     fprintf(stderr, "         -m              Append MEE to read comment\n");
@@ -17,8 +17,8 @@ static int meeptools_filter_usage(int extra)
     {
         fprintf(stderr,"Examples:\n");
         fprintf(stderr,"meeptools filter -f a.fastq.gz -o a_mfiltered.fastq.gz -m 1.0\n");
-        fprintf(stderr,"meeptools filter -f read1.fastq,read2.fastq -o read1_meep_filtered.fastq.gz,read2_meep_filtered.fastq.gz -m 1.0\n");
-        fprintf(stderr,"meeptools filter -m 1.0 -l 50 -f read1.fastq,read2.fastq -o read1_meep_filtered.fastq.gz,read2_meep_filtered.fastq.gz -s single_end_meep_filtered.fastq.gz\n");
+        fprintf(stderr,"meeptools filter -f read1.fastq,read2.fastq -o read1_meep_filtered.fastq.gz,read2_meep_filtered.fastq.gz -c 1.0\n");
+        fprintf(stderr,"meeptools filter -c 1.0 -l 50 -f read1.fastq,read2.fastq -o read1_meep_filtered.fastq.gz,read2_meep_filtered.fastq.gz -s single_end_meep_filtered.fastq.gz -m -q\n");
     }
     return 1;
 }
@@ -32,8 +32,8 @@ int meeptools_filter(int argc, char *argv[])
     int mflag=0;
     int qflag=0;
     int sflag=0;
-    int lcut=0;
-    double mcut=0.0;
+    int lcut=DEFAULTLCUT;
+    double mcut;
     char *inputFastqstr;
     char **inputFastqs;
     int nInputFastqs;

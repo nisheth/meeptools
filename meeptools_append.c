@@ -5,6 +5,7 @@ static int meeptools_append_usage(int extra)
     fprintf(stderr, "Usage:   meeptools append [options] \n\n Appends MEEP score to comment section of read id.\n\n");
     fprintf(stderr, "Options: -f FILE  FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -o FILE  FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
+    fprintf(stderr, "Optional:\n");
     fprintf(stderr, "         -q       Append read quality to read comment\n");
     fprintf(stderr, "         -m       Append MEE to read comment\n");
     fprintf(stderr, "         -h       help\n");

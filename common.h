@@ -28,6 +28,10 @@
 #define PRINTINTERVAL 10000
 #endif
 
+#ifndef DEFAULTLCUT
+#define DEFAULTLCUT 35
+#endif
+
 #ifdef DEBUG
 #define DebugMsg(msg) fprintf(stderr,"[%s]: %s\n",__func__,msg)
 #else

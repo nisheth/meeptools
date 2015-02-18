@@ -2,6 +2,7 @@
 #include "common.h"
 #endif
 #include<unistd.h>
+//#include <stdlib.h>
 
 int file_exists(const char* filename);
 
@@ -24,12 +25,14 @@ typedef struct
     double pmeep2; //percent reads with MEEP2
 }readSetStats;
 
+//int floatcomp(const void* elem1, const void* elem2);
 void init_q2mee_hash();
 void seqIsInvalid(kseq_t *seq,char *fastqFilename);
 int seqWriteToFileWithMateNumber(kseq_t *seq,gzFile fpout,double meep,double mee,double readQual,int write_mee,int write_readQual,int mate_number);
 double seqCalculateMEE(kseq_t *seq);
 double seqCalculateQScore(kseq_t *seq);
 double seqCalculateQScoreExtra(kseq_t *seq,int *l70q20,int *l70q25,int *l70q30);
+double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *newstart,int *newl,double *newReadQuality, double *untrimmedlMEE, double *untrimmedReadQuality);
 int readSetStatsInit(readSetStats *rss);
 int readSetStatsAddRead(readSetStats *rss,int rl,double rq,double mee);
 int readSetStatsUpdate(readSetStats *rss);
