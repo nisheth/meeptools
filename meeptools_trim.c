@@ -45,6 +45,7 @@ int meeptools_trim(int argc, char *argv[])
     gzFile sfp;
     kseq_t *seq1,*seq2;
     double mee[2];
+    double meep[2];
     double readQual[2];
     readSetStats rssIn[2];
     readSetStats rssOut[3];
@@ -58,6 +59,7 @@ int meeptools_trim(int argc, char *argv[])
     for (i=0;i<2;i++) 
     {
         mee[i]=-1.0;
+        meep[i]=-1.0;
         readQual[i]=0.0;
         newstart[i]=-1;
         newl[i]=-1;
@@ -89,7 +91,7 @@ int meeptools_trim(int argc, char *argv[])
             mflag=1;
             break;
         case 'q':
-            cflag=1;
+            qflag=1;
             break;
 	case 'l':
             lcut = atoi(optarg);
@@ -236,8 +238,7 @@ int meeptools_trim(int argc, char *argv[])
         readQual[0]=newReadQuality;
         newstart[0]=newstarttmp;
         newl[0]=newltmp;
-
-	//printf("%HERE\n");
+        meep[0]=mee[0]*100.0/newl[0];
         
         if (!readSetStatsAddRead(&rssIn[0],l[0],untrimmedReadQuality,untrimmedMEE)) ErrorMsgExit("failed adding read to read set!");
         if (nInputFastqs==2)
@@ -253,8 +254,17 @@ int meeptools_trim(int argc, char *argv[])
 	   		readQual[1] = newReadQuality;
 	   		newstart[1] = newstarttmp;
 	   		newl[1] = newltmp;
+	   		meep[1]=mee[1]*100.0/newl[1];
+	   		
 	    	if (!readSetStatsAddRead(&rssIn[1],l[1],untrimmedReadQuality,untrimmedMEE)) ErrorMsgExit("failed adding read to read set!");
         }
+        
+        if(nreads%PRINTINTERVAL == 0)
+		{
+			sprintf(msg,"%d reads processed.",nreads);
+			PrintMsg(msg);
+		}
+		nreads++;
         
 		if (mee[0]!=-1 && mee[1]!=-1) 
 		{
@@ -264,6 +274,10 @@ int meeptools_trim(int argc, char *argv[])
 		}
 		if (mee[0]!=-1 && !sflag)
 		{
+		    if (!seqWriteSubseqToFileWithMateNumber(seq1,newstart[0],newl[0],fpout[0],meep[0],mee[0],readQual[0],mflag,qflag,0)) {
+                sprintf(msg,"Writing seqid %s to file %s failed!",seq1->name.s,outputFastqs[0]);
+                ErrorMsgExit(msg);
+            }
         	if (!readSetStatsAddRead(&rssOut[0],newl[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");
 			continue;
 		}
@@ -277,6 +291,37 @@ int meeptools_trim(int argc, char *argv[])
         	if (!readSetStatsAddRead(&rssOut[2],newl[1],readQual[1],mee[1])) ErrorMsgExit("failed adding read to read set!");
 			continue;
 		}
+
+    }
+    
+    kseq_destroy(seq1);
+    gzclose(fp[0]);
+    gzclose(fpout[0]);
+    if (!readSetStatsUpdate(&rssIn[0])) ErrorMsgExit("failed readset update!");
+    if (!readSetStatsUpdate(&rssOut[0])) ErrorMsgExit("failed readset update!");    
+    if (nInputFastqs==2) {
+		kseq_destroy(seq2);
+        gzclose(fp[1]);
+        gzclose(fpout[1]);
+		if (!readSetStatsUpdate(&rssIn[1])) ErrorMsgExit("failed readset update!");
+		if (!readSetStatsUpdate(&rssOut[1])) ErrorMsgExit("failed readset update!");    
+        if (sflag) 
+        {
+			gzclose(sfp);
+			if (!readSetStatsUpdate(&rssOut[2])) ErrorMsgExit("failed readset update!");    
+        }
+    }
+    
+    DebugMsg("Done closing all files");
+    
+    readSetStatsPrintHeader();     
+    readSetStatsPrint(&rssIn[0],&rssIn[0],inputFastqs[0]);
+    readSetStatsPrint(&rssOut[0],&rssIn[0],outputFastqs[0]);
+    if (nInputFastqs==2)
+    {
+	readSetStatsPrint(&rssIn[1],&rssIn[1],inputFastqs[0]);
+	readSetStatsPrint(&rssOut[1],&rssIn[1],outputFastqs[1]);
+	if (sflag) readSetStatsPrint(&rssOut[2],&rssIn[0],singleEndFastqOutFile);
 
     }
     

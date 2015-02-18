@@ -48,6 +48,12 @@ struct meeHash{
     UT_hash_handle hh;
 };
 
+struct meeHash2{
+    int Q;//key
+    double MEE;
+    UT_hash_handle hh;
+};
+
 int meeptools_append(int argc, char *argv[]);
 int meeptools_filter(int argc, char *argv[]);
 int meeptools_sort(int argc, char *argv[]);

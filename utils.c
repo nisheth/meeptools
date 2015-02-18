@@ -1,5 +1,6 @@
 #include "utils.h"
 extern struct meeHash *q2mee=NULL;
+extern struct meeHash2 *q2mee2=NULL;
 /*
 int floatcomp(const void* elem1, const void* elem2)
 {
@@ -42,6 +43,21 @@ void init_q2mee_hash()
     }
 }
 
+void init_q2mee2_hash()
+{
+    struct meeHash2 *s;
+    int i;
+    double mee;
+
+    for (i=0;i<50;i++) {
+        mee=pow(10.0,(-1.0*i/10));
+        s=(struct meeHash*)malloc(sizeof(struct meeHash));
+        s->Q=i+33;
+        s->MEE=mee;
+        HASH_ADD_INT(q2mee2,Q,s);
+    }
+}
+
 void seqIsInvalid(kseq_t *seq,char *fastqFilename)
 {
     char msg[STDSTRLEN];
@@ -52,12 +68,16 @@ void seqIsInvalid(kseq_t *seq,char *fastqFilename)
 double seqCalculateMEE(kseq_t *seq)
 {
     int i;
-    char q[2];
+//    char q[2];
+    int j;
     double mee=0.0;
-    struct meeHash *s;
+//    struct meeHash *s;
+    struct meeHash2 *s;
     for (i=0;i<(int)strlen(seq->qual.s);i++) {
-        sprintf(q,"%c\0",seq->qual.s[i]);
-        HASH_FIND_STR(q2mee,q,s);
+//        sprintf(q,"%c\0",seq->qual.s[i]);
+//        HASH_FIND_STR(q2mee,q,s);
+		j=(int)seq->qual.s[i];
+        HASH_FIND_INT(q2mee2,&j,s);
         mee+=s->MEE;
     }
     return mee;
@@ -70,18 +90,11 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
     char q[2];
     int l=seq->qual.l;
     double mee[l];
-    double meesorted[l];
-    double minsummee=-1.0;
     double summeeHash[l][l];
     double summeeCut[l];
     struct meeHash *s;
-    double meep=0.0;
-    int newstarttmp=-1;
-    int newltmp=-1;
     double summee=0.0;
     int found=0;
-    int maxlen=-1;
-    double a;
     
     *newstart=-1;
     *newl=-1;
@@ -91,7 +104,6 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
         sprintf(q,"%c\0",seq->qual.s[i]);
         HASH_FIND_STR(q2mee,q,s);
         mee[i]=s->MEE;
-        meesorted[i]=mee[i];
 		summee+=mee[i];
 		readQual+=seq->qual.s[i];
 		for (j=0;j<l;j++)
@@ -112,36 +124,6 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
 	*newReadQuality=*untrimmedReadQuality;
 	return summee;
     }
-
-
-    for (i = 0; i < l; ++i)
-    {
-        for (j = i + 1; j < l; ++j)
-        {
-            if (meesorted[i] > meesorted[j])
-            {
-                a =  meesorted[i];
-                meesorted[i] = meesorted[j];
-                meesorted[j] = a;
-            }
-        }
-    }
-
-//    qsort(meesorted, l, sizeof(float), floatcomp);
-
-    summee=0.0;
-    for(i=0;i<l;i++) {
-    	summee+=meesorted[i];
-    	//printf("i=%d, l-i=%d, summee=%.4f, meesorted[i]=%.4f, summeeCut[i]=%.4f\n",i,l-i,summee,meesorted[i],summeeCut[i]);
-    	if ((summee > summeeCut[i]) && (found==0))
-    	{
-    	    found=1;
-    		maxlen=i;
-    		//break;
-    	}
-    }
-    found=0;
-    //printf("maxlen= %d\n",maxlen);
 
     summeeHash[0][0]=summee;
     summeeHash[1][0]=summee-mee[l-1];
@@ -175,13 +157,6 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
 	    }
 	    readQual-=((*newl)*'!');
     	*newReadQuality=readQual*1.0/(*newl);
-    	printf("maxlen=%d, ",maxlen);
-    	printf("newstart=%d, ",*newstart);
-    	printf("newl=%d, ",*newl);
-    	printf("untrimmedmeep=%.4f, ",*untrimmedMEE*100.0/l);
-    	printf("newmeep=%4f, ",summeeHash[l-*newl][*newstart]*100.0/(*newl));
-    	printf("untrimmedQ=%.2f, ",*untrimmedReadQuality);
-    	printf("newQ=%.2f\n",*newReadQuality);
 	    return summeeHash[l-*newl][*newstart];
 	}
     }
@@ -340,6 +315,66 @@ int seqWriteToFileWithMateNumber(kseq_t *seq,gzFile fpout,double meep,double mee
     }
      
     sprintf(linebuffer,"@%s %s\n%s\n+\n%s\n",nametmp,commentMEEP,seq->seq.s,seq->qual.s);  
+    gzwrite(fpout,linebuffer,strlen(linebuffer));
+    
+    return 1;
+}
+
+int seqWriteSubseqToFileWithMateNumber(kseq_t *seq, int newstart, int newl, gzFile fpout, double meep, double mee, double readQual, int write_mee, int write_readQual, int mate_number)
+{
+    char linebuffer[2 * MAXREADLENGTH];
+    char bases[MAXREADLENGTH];
+    char quality[MAXREADLENGTH];
+    char commentMEEPtmp[STDSTRLEN];
+    char commentMEEP[STDSTRLEN];
+    char nametmp[STDSTRLEN];
+    char word[STDSTRLEN];
+    
+    if (mate_number < 0 || mate_number >2) ErrorMsgExit("Invalid mate number supplied!");
+    
+    if (mate_number==1 || mate_number==2)
+    {
+	sprintf(word,"/%d",mate_number);
+	if(strstr(seq->name.s,word)==NULL) sprintf(nametmp,"%s/%d",seq->name.s,mate_number);
+    }
+    else
+    {
+	sprintf(nametmp,"%s",seq->name.s);
+    }
+    
+    if (write_mee && write_readQual) {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f:QUAL=%.2f",meep,mee,readQual);
+    }
+    else if(write_mee)
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f",meep,mee);
+    }
+    else if(write_readQual)
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:QUAL=%.2f",meep,readQual);
+    }
+    else
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f",meep);
+    }
+    
+    if (seq->comment.l)
+    {
+        sprintf(commentMEEP,"%s:%s",seq->comment.s,commentMEEPtmp);
+    }
+    else
+    {
+        sprintf(commentMEEP,"%s",commentMEEPtmp);
+    }
+    
+    
+    memset(bases, '\0', sizeof(bases));
+    memset(quality, '\0', sizeof(quality));
+    
+    strncpy(bases,&seq->seq.s[newstart],newl);
+    strncpy(quality,&seq->qual.s[newstart],newl);
+     
+    sprintf(linebuffer,"@%s %s\n%s\n+\n%s\n",nametmp,commentMEEP,bases,quality);  
     gzwrite(fpout,linebuffer,strlen(linebuffer));
     
     return 1;

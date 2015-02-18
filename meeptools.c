@@ -25,7 +25,10 @@ int main(int argc, char *argv[])
     {
         ErrorMsgExit("Initialization of q2mee failed!");
     }
-    
+    if (!init_q2mee2_hash())
+    {
+        ErrorMsgExit("Initialization of q2mee2 failed!");
+    }
     DebugMsg("Initializing q2mee hash complete.");
     
     if (strcmp(argv[1], "append") == 0) return meeptools_append(argc-1, argv+1);
