@@ -43,16 +43,11 @@
 #define ErrorMsgExit(msg) {fprintf(stderr,"ERROR [%s]: %s\n",__func__,msg);exit(1);}
 
 struct meeHash{
-    char Q[2];//key
-    double MEE;
-    UT_hash_handle hh;
-};
-
-struct meeHash2{
     int Q;//key
     double MEE;
     UT_hash_handle hh;
 };
+
 
 int meeptools_append(int argc, char *argv[]);
 int meeptools_filter(int argc, char *argv[]);

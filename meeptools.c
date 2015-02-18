@@ -18,18 +18,8 @@ static int usage()
 
 int main(int argc, char *argv[])
 {
-    
+
     if (argc < 2) return usage();
-    
-    if (!init_q2mee_hash())
-    {
-        ErrorMsgExit("Initialization of q2mee failed!");
-    }
-    if (!init_q2mee2_hash())
-    {
-        ErrorMsgExit("Initialization of q2mee2 failed!");
-    }
-    DebugMsg("Initializing q2mee hash complete.");
     
     if (strcmp(argv[1], "append") == 0) return meeptools_append(argc-1, argv+1);
     else if (strcmp(argv[1], "filter") == 0) return meeptools_filter(argc-1, argv+1);
@@ -41,5 +31,7 @@ int main(int argc, char *argv[])
             fprintf(stderr, "[%s] unrecognized command '%s'\n", __func__,argv[1]);
             return 1;
     }
-    return 0;
+
+    return 1;
+
 }

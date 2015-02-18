@@ -1,14 +1,6 @@
 #include "utils.h"
 extern struct meeHash *q2mee=NULL;
-extern struct meeHash2 *q2mee2=NULL;
-/*
-int floatcomp(const void* elem1, const void* elem2)
-{
-    if(*(const float*)elem1 < *(const float*)elem2)
-        return -1;
-    return *(const float*)elem1 > *(const float*)elem2;
-}
-*/
+
 int file_exists(const char* filename)
 {
     int result;
@@ -24,39 +16,22 @@ int file_exists(const char* filename)
     }
 }
 
-void init_q2mee_hash()
+int init_q2mee_hash(int offset)
 {
     struct meeHash *s;
-    char tmpq;
-    char q[2];
-    int i;
-    double mee;
-
-    for (i=0;i<50;i++) {
-        tmpq=(char)(i+33);
-        sprintf(q,"%c\0",tmpq);
-        mee=pow(10.0,(-1.0*i/10));
-        s=(struct meeHash*)malloc(sizeof(struct meeHash));
-        strcpy(s->Q,q);
-        s->MEE=mee;
-        HASH_ADD_STR(q2mee,Q,s);
-    }
-}
-
-void init_q2mee2_hash()
-{
-    struct meeHash2 *s;
     int i;
     double mee;
 
     for (i=0;i<50;i++) {
         mee=pow(10.0,(-1.0*i/10));
         s=(struct meeHash*)malloc(sizeof(struct meeHash));
-        s->Q=i+33;
+        s->Q=i+offset;
         s->MEE=mee;
-        HASH_ADD_INT(q2mee2,Q,s);
+        HASH_ADD_INT(q2mee,Q,s);
     }
+    return 1;
 }
+
 
 void seqIsInvalid(kseq_t *seq,char *fastqFilename)
 {
@@ -68,26 +43,21 @@ void seqIsInvalid(kseq_t *seq,char *fastqFilename)
 double seqCalculateMEE(kseq_t *seq)
 {
     int i;
-//    char q[2];
     int j;
     double mee=0.0;
-//    struct meeHash *s;
-    struct meeHash2 *s;
+    struct meeHash *s;
     for (i=0;i<(int)strlen(seq->qual.s);i++) {
-//        sprintf(q,"%c\0",seq->qual.s[i]);
-//        HASH_FIND_STR(q2mee,q,s);
 		j=(int)seq->qual.s[i];
-        HASH_FIND_INT(q2mee2,&j,s);
+        HASH_FIND_INT(q2mee,&j,s);
         mee+=s->MEE;
     }
     return mee;
 }
 
-double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *newstart,int *newl,double *newReadQuality, double *untrimmedMEE, double *untrimmedReadQuality)
+double seqTrimCalculateMEEReadQuality(kseq_t *seq,int offset,int lcut,double mcut,int *newstart,int *newl,double *newReadQuality, double *untrimmedMEE, double *untrimmedReadQuality)
 {
-    int i,j;
+    int i,j,k;
     int readQual=0;
-    char q[2];
     int l=seq->qual.l;
     double mee[l];
     double summeeHash[l][l];
@@ -101,8 +71,8 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
     
     for (i=0;i<l;i++) 
     {
-        sprintf(q,"%c\0",seq->qual.s[i]);
-        HASH_FIND_STR(q2mee,q,s);
+        k=(int)seq->qual.s[i];
+        HASH_FIND_INT(q2mee,&k,s);
         mee[i]=s->MEE;
 		summee+=mee[i];
 		readQual+=seq->qual.s[i];
@@ -114,7 +84,7 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
     }
     
     *untrimmedMEE=summee;
-    readQual-=(l*'!');
+    readQual-=(l*offset);
     *untrimmedReadQuality=readQual*1.0/l;
     
     if (summee < summeeCut[0])
@@ -155,7 +125,7 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
 	    {
 	        readQual+=seq->qual.s[i];
 	    }
-	    readQual-=((*newl)*'!');
+	    readQual-=((*newl)*offset);
     	*newReadQuality=readQual*1.0/(*newl);
 	    return summeeHash[l-*newl][*newstart];
 	}
@@ -165,27 +135,26 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
 
 
 
-double seqCalculateQScore(kseq_t *seq)
+double seqCalculateQScore(kseq_t *seq,int offset)
 {
     unsigned int readQual=0,i,l;
     l=seq->qual.l;
     if (l==0) return 0.0;
     for (i=0;i<l;i++) {
-//        readQual+=(seq->qual.s[i]-'!');
         readQual+=seq->qual.s[i];
     }
-    readQual-=(l*'!');
+    readQual-=(l*offset);
     return readQual*1.0/l;
 }
 
-double seqCalculateQScoreExtra(kseq_t *seq,int *l70q20,int *l70q25,int *l70q30)
+double seqCalculateQScoreExtra(kseq_t *seq,int offset,int *l70q20,int *l70q25,int *l70q30)
 {
     int readQual=0,i,l,q;
     int c20=0,c25=0,c30=0;
     l=seq->qual.l;
     if (l==0) return 0.0;
     for (i=0;i<l;i++) {
-        q=seq->qual.s[i]-'!';
+        q=seq->qual.s[i]-offset;
         readQual+=q;
         if (q>=20) c20++;
         if (q>=25) c25++;

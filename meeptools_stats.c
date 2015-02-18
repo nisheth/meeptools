@@ -5,8 +5,9 @@ static int meeptools_stats_usage()
 {
     fprintf(stderr, "\n");
     fprintf(stderr, "Usage:   meeptools stats [options] \n\n Generates MEEP score and other stats for fastq file.\n\n");
-    fprintf(stderr, "Options: -f FILE  FASTQ FILE\n");
+    fprintf(stderr, "Options: -i FILE  FASTQ FILE\n");
     fprintf(stderr, "         -s       Output subset stats also.\n");
+    fprintf(stderr, "         -f INT   Offset 33(default) or 64 (Optional)\n.");
     fprintf(stderr, "         -h       help\n");
     fprintf(stderr, "\n");
     return 1;
@@ -14,8 +15,8 @@ static int meeptools_stats_usage()
 
 int meeptools_stats(int argc, char *argv[])
 {
-    int i,c,l,l70q20,l70q25,l70q30;
-    int fflag=0;
+    int i,c,l,l70q20,l70q25,l70q30,offset=33;
+    int iflag=0;
     int sflag=0;
     char *fastqFilename;
     gzFile fp;
@@ -38,16 +39,19 @@ int meeptools_stats(int argc, char *argv[])
         }
     }
         
-    while ((c = getopt(argc, argv, "f:sh?")) != -1)
+    while ((c = getopt(argc, argv, "i:f:sh?")) != -1)
     {
         switch (c)
         {
-        case 'f':
-            fflag = 1;
+        case 'i':
+            iflag = 1;
             fastqFilename = strdup(optarg);
             break;
         case 's':
             sflag = 1;
+            break;
+        case 'f':
+            offset = atoi(optarg);
             break;
         case 'h':
             return meeptools_stats_usage();
@@ -55,14 +59,22 @@ int meeptools_stats(int argc, char *argv[])
             return meeptools_stats_usage();
         }
     }
-    if (fflag==0){
-        ErrorMsg("missing -f option");
+    if (iflag==0){
+        ErrorMsg("missing -i option");
         return meeptools_stats_usage();
     }
     if (file_exists(fastqFilename)!=1) {
         sprintf(msg, "%s file does not exist!",fastqFilename);
         ErrorMsgExit(msg);
     }
+    if (offset !=33 && offset !=64 ) {
+    	ErrorMsgExit("Offset value can only be 33(default) or 64!");
+    }
+    if (!init_q2mee_hash(offset))
+    {
+        ErrorMsgExit("Initialization of q2mee failed!");
+    }
+	DebugMsg("Initializing q2mee hash complete.");
     
     if ((fp = gzopen(fastqFilename, "rb")) == NULL )
     {
@@ -87,7 +99,7 @@ int meeptools_stats(int argc, char *argv[])
 
         meep = mee*100.0/l;
 
-        readQual = seqCalculateQScoreExtra(seq,&l70q20,&l70q25,&l70q30);
+        readQual = seqCalculateQScoreExtra(seq,offset,&l70q20,&l70q25,&l70q30);
         
         if (!readSetStatsAddRead(&allReadSetStats[RSALL],l,readQual,mee)) 
         {

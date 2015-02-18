@@ -11,7 +11,6 @@ SRCS = 		utils.c \
 		meeptools_append.c \
 		meeptools_filter.c \
 		meeptools_sort.c \
-		meeptools_subset.c \
 		meeptools_trim.c \
 		meeptools.c
 

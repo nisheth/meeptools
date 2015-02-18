@@ -3,10 +3,11 @@ static int meeptools_filter_usage(int extra)
 {
     fprintf(stderr, "\n");
     fprintf(stderr, "Usage:   meeptools filter [options] \n\n Filters reads by MEEP score.\n\n");
-    fprintf(stderr, "Options: -f FILE         FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
+    fprintf(stderr, "Options: -i FILE         FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -o FILE         FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -c FLOAT        MEEP score cut off (between 0 and 20)\n");
     fprintf(stderr, "Optional:\n");
+    fprintf(stderr, "         -f INTEGER      Offset 33(default) or 64\n.");
     fprintf(stderr, "         -l INTEGER      read length cut off (default %d)\n",DEFAULTLCUT);
     fprintf(stderr, "         -s FILE         FASTQ FILE for single read (read1 or read2) meeting MEEP score cut off\n");
     fprintf(stderr, "         -q              Append read quality to read comment\n");
@@ -16,17 +17,17 @@ static int meeptools_filter_usage(int extra)
     if (extra)
     {
         fprintf(stderr,"Examples:\n");
-        fprintf(stderr,"meeptools filter -f a.fastq.gz -o a_mfiltered.fastq.gz -m 1.0\n");
-        fprintf(stderr,"meeptools filter -f read1.fastq,read2.fastq -o read1_meep_filtered.fastq.gz,read2_meep_filtered.fastq.gz -c 1.0\n");
-        fprintf(stderr,"meeptools filter -c 1.0 -l 50 -f read1.fastq,read2.fastq -o read1_meep_filtered.fastq.gz,read2_meep_filtered.fastq.gz -s single_end_meep_filtered.fastq.gz -m -q\n");
+        fprintf(stderr,"meeptools filter -i a.fastq.gz -o a_mfiltered.fastq.gz -m 1.0\n");
+        fprintf(stderr,"meeptools filter -i read1.fastq,read2.fastq -o read1_meep_filtered.fastq.gz,read2_meep_filtered.fastq.gz -c 1.0 -f 64\n");
+        fprintf(stderr,"meeptools filter -c 1.0 -l 50 -i read1.fastq,read2.fastq -o read1_meep_filtered.fastq.gz,read2_meep_filtered.fastq.gz -s single_end_meep_filtered.fastq.gz -m -q\n");
     }
     return 1;
 }
 int meeptools_filter(int argc, char *argv[])
 {
-    int z,i;
+    int z,i,offset=33;
     int l[2];
-    int fflag=0;
+    int iflag=0;
     int oflag=0;
     int cflag=0;
     int mflag=0;
@@ -62,14 +63,17 @@ int meeptools_filter(int argc, char *argv[])
         if (!readSetStatsInit(&rssOut[i])) ErrorMsgExit("failed initialization of read set!");
     }
     
-    while ((z = getopt(argc, argv, "f:o:c:l:s:mqh")) != -1)
+    while ((z = getopt(argc, argv, "i:f:o:c:l:s:mqh")) != -1)
     {
         switch (z)
         {
-        case 'f':
-            fflag = 1;
+        case 'i':
+            iflag = 1;
             inputFastqstr = strdup(optarg);
             break;
+        case 'f':
+        	offset = atoi(optarg);
+        	break;
         case 'o':
             oflag = 1;
             outputFastqstr = strdup(optarg);
@@ -103,7 +107,16 @@ int meeptools_filter(int argc, char *argv[])
     sprintf(msg,"RL cut off = %d",lcut);
     DebugMsg(msg);
     
-    if (fflag==0)
+    if (offset !=33 && offset !=64 ) {
+    	ErrorMsgExit("Offset value can only be 33(default) or 64!");
+    }
+    if (!init_q2mee_hash(offset))
+    {
+        ErrorMsgExit("Initialization of q2mee failed!");
+    }
+	DebugMsg("Initializing q2mee hash complete.");
+	
+    if (iflag==0)
     {
         ErrorMsg("missing -f option");
         return meeptools_filter_usage(0);
@@ -221,7 +234,7 @@ int meeptools_filter(int argc, char *argv[])
 		
         mee[0] = seqCalculateMEE(seq1);
         meep[0] = mee[0]*100.0/l[0];
-        readQual[0] = seqCalculateQScore(seq1);
+        readQual[0] = seqCalculateQScore(seq1,offset);
 	
         if (!readSetStatsAddRead(&rssIn[0],l[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");
 	
@@ -234,9 +247,11 @@ int meeptools_filter(int argc, char *argv[])
                 ErrorMsg("Invalid sequence detected!");
                 seqIsInvalid(seq2,inputFastqs[1]);
             }            
+            
             mee[1] = seqCalculateMEE(seq2);
             meep[1] = mee[1]*100.0/l[1];
-	    readQual[1] = seqCalculateQScore(seq2);
+	    	readQual[1] = seqCalculateQScore(seq2,offset);
+	    	
 	    if (!readSetStatsAddRead(&rssIn[1],l[1],readQual[1],mee[1])) ErrorMsgExit("failed adding read to read set!");
         }
 	

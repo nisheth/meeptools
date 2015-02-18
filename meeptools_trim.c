@@ -3,10 +3,11 @@ static int meeptools_trim_usage(int extra)
 {
     fprintf(stderr, "\n");
     fprintf(stderr, "Usage:   meeptools trim [options] \n\n Trims reads from 5' and 3' ends to meet MEEP cutoff.\n\n");
-    fprintf(stderr, "Options: -f FILE         FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
+    fprintf(stderr, "Options: -i FILE         FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -o FILE         FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -c FLOAT        MEEP score cut off (between 0 and 20)\n");
     fprintf(stderr, "Optional:\n");
+    fprintf(stderr, "         -f INTEGER      Offset 33(default) or 64\n.");
     fprintf(stderr, "         -l INTEGER      read length cut off (default 35)\n");
     fprintf(stderr, "         -s FILE         FASTQ FILE for single read (read1 or read2) meeting MEEP score cut off\n");
     fprintf(stderr, "         -q              Append read quality to read comment\n");
@@ -16,17 +17,17 @@ static int meeptools_trim_usage(int extra)
     if (extra)
     {
         fprintf(stderr,"Examples:\n");
-        fprintf(stderr,"meeptools trim -f a.fastq.gz -o a_mtrimed.fastq.gz -m 1.0\n");
-        fprintf(stderr,"meeptools trim -f read1.fastq,read2.fastq -o read1_meep_trimed.fastq.gz,read2_meep_trimed.fastq.gz -m 1.0\n");
-        fprintf(stderr,"meeptools trim -m 1.0 -l 50 -f read1.fastq,read2.fastq -o read1_meep_trimed.fastq.gz,read2_meep_trimed.fastq.gz -s single_end_meep_trimed.fastq.gz\n");
+        fprintf(stderr,"meeptools trim -i a.fastq.gz -o a_mtrimed.fastq.gz -m 1.0\n");
+        fprintf(stderr,"meeptools trim -i read1.fastq,read2.fastq -o read1_meep_trimed.fastq.gz,read2_meep_trimed.fastq.gz -m 1.0 -f 64\n");
+        fprintf(stderr,"meeptools trim -m 1.0 -l 50 -i read1.fastq,read2.fastq -o read1_meep_trimed.fastq.gz,read2_meep_trimed.fastq.gz -s single_end_meep_trimed.fastq.gz\n");
     }
     return 1;
 }
 int meeptools_trim(int argc, char *argv[])
 {
-    int z,i;
+    int z,i,offset=33;
     int l[2];
-    int fflag=0;
+    int iflag=0;
     int oflag=0;
     int cflag=0;
     int mflag=0;
@@ -67,14 +68,17 @@ int meeptools_trim(int argc, char *argv[])
         if (!readSetStatsInit(&rssOut[i])) ErrorMsgExit("failed initialization of read set!");
     }
     
-    while ((z = getopt(argc, argv, "f:o:c:l:s:mqh")) != -1)
+    while ((z = getopt(argc, argv, "i:f:o:c:l:s:mqh")) != -1)
     {
         switch (z)
         {
-        case 'f':
-            fflag = 1;
+        case 'i':
+            iflag = 1;
             inputFastqstr = strdup(optarg);
             break;
+        case 'f':
+        	offset = atoi(optarg);
+        	break;
         case 'o':
             oflag = 1;
             outputFastqstr = strdup(optarg);
@@ -107,8 +111,15 @@ int meeptools_trim(int argc, char *argv[])
     DebugMsg(msg);
     sprintf(msg,"RL cut off = %d",lcut);
     DebugMsg(msg);
-    
-    if (fflag==0)
+    if (offset !=33 && offset !=64 ) {
+    	ErrorMsgExit("Offset value can only be 33(default) or 64!");
+    }
+    if (!init_q2mee_hash(offset))
+    {
+        ErrorMsgExit("Initialization of q2mee failed!");
+    }
+	DebugMsg("Initializing q2mee hash complete.");    
+    if (iflag==0)
     {
         ErrorMsg("missing -f option");
         return meeptools_trim_usage(0);
@@ -234,7 +245,7 @@ int meeptools_trim(int argc, char *argv[])
             seqIsInvalid(seq1,inputFastqs[0]);
         }
         
-        mee[0]=seqTrimCalculateMEEReadQuality(seq1,lcut,mcut,&newstarttmp,&newltmp,&newReadQuality,&untrimmedMEE,&untrimmedReadQuality);
+        mee[0]=seqTrimCalculateMEEReadQuality(seq1,offset,lcut,mcut,&newstarttmp,&newltmp,&newReadQuality,&untrimmedMEE,&untrimmedReadQuality);
         readQual[0]=newReadQuality;
         newstart[0]=newstarttmp;
         newl[0]=newltmp;
@@ -250,7 +261,7 @@ int meeptools_trim(int argc, char *argv[])
                 ErrorMsg("Invalid sequence detected!");
                 seqIsInvalid(seq2,inputFastqs[1]);
             }            
-            mee[1] = seqTrimCalculateMEEReadQuality(seq2,lcut,mcut,&newstarttmp,&newltmp,&newReadQuality,&untrimmedMEE,&untrimmedReadQuality);
+            mee[1] = seqTrimCalculateMEEReadQuality(seq2,offset,lcut,mcut,&newstarttmp,&newltmp,&newReadQuality,&untrimmedMEE,&untrimmedReadQuality);
 	   		readQual[1] = newReadQuality;
 	   		newstart[1] = newstarttmp;
 	   		newl[1] = newltmp;

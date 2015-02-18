@@ -3,9 +3,10 @@ static int meeptools_append_usage(int extra)
 {
     fprintf(stderr, "\n");
     fprintf(stderr, "Usage:   meeptools append [options] \n\n Appends MEEP score to comment section of read id.\n\n");
-    fprintf(stderr, "Options: -f FILE  FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
+    fprintf(stderr, "Options: -i FILE  FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -o FILE  FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "Optional:\n");
+    fprintf(stderr, "         -f INT   Offset 33(default) or 64\n.");
     fprintf(stderr, "         -q       Append read quality to read comment\n");
     fprintf(stderr, "         -m       Append MEE to read comment\n");
     fprintf(stderr, "         -h       help\n");
@@ -13,16 +14,16 @@ static int meeptools_append_usage(int extra)
     if (extra)
     {
         fprintf(stderr,"Examples:\n");
-        fprintf(stderr,"meeptools append -f a.fastq.gz -o a_meep.fastq.gz\n");
-        fprintf(stderr,"meeptools append -f read1.fastq,read2.fastq -o read1_meep.fastq.gz,read2_meep.fastq.gz\n");
+        fprintf(stderr,"meeptools append -i a.fastq.gz -o a_meep.fastq.gz\n");
+        fprintf(stderr,"meeptools append -i read1.fastq,read2.fastq -o read1_meep.fastq.gz,read2_meep.fastq.gz -f 64\n");
     }
     return 1;
 }
 
 int meeptools_append(int argc, char *argv[])
 {
-    int c,i,l;
-    int fflag=0;
+    int c,i,l,offset=33;
+    int iflag=0;
     int oflag=0;
     int qflag=0;
     int mflag=0;
@@ -41,14 +42,17 @@ int meeptools_append(int argc, char *argv[])
     
     char msg[STDSTRLEN];
     
-    while ((c = getopt(argc, argv, "f:o:mqh")) != -1)
+    while ((c = getopt(argc, argv, "i:f:o:mqh")) != -1)
     {
         switch (c)
         {
-        case 'f':
-            fflag = 1;
+        case 'i':
+            iflag = 1;
             inputFastqstr = strdup(optarg);
             break;
+        case 'f':
+        	offset = atoi(optarg);
+        	break;
         case 'o':
             oflag = 1;
             outputFastqstr = strdup(optarg);
@@ -65,9 +69,17 @@ int meeptools_append(int argc, char *argv[])
             return meeptools_append_usage(0);
         }
     }
-    if (fflag==0)
+    if (offset !=33 && offset !=64 ) {
+    	ErrorMsgExit("Offset value can only be 33(default) or 64!");
+    }
+    if (!init_q2mee_hash(offset))
     {
-        ErrorMsg("missing -f option");
+        ErrorMsgExit("Initialization of q2mee failed!");
+    }
+	DebugMsg("Initializing q2mee hash complete.");
+    if (iflag==0)
+    {
+        ErrorMsg("missing -i option");
         return meeptools_append_usage(0);
     }
     if (oflag==0)
@@ -124,10 +136,9 @@ int meeptools_append(int argc, char *argv[])
                 seqIsInvalid(seq,inputFastqs[i]);
             }
 
-            nreads++;
             mee = seqCalculateMEE(seq);
             meep = mee*100.0/l;
-            if (qflag) readQual = seqCalculateQScore(seq);
+            if (qflag) readQual = seqCalculateQScore(seq,offset);
             
             if (!seqWriteToFileWithMateNumber(seq,fpout,meep,mee,readQual,mflag,qflag,0)) {
                 sprintf(msg,"Writing seqid %s to file %s failed!",seq->name.s,outputFastqs[i]);
@@ -139,6 +150,7 @@ int meeptools_append(int argc, char *argv[])
                 sprintf(msg,"%d reads processed.",nreads);
                 PrintMsg(msg);
             }
+            nreads++;
         
         }
         
