@@ -10,6 +10,7 @@ static int meeptools_filter_usage(int extra)
     fprintf(stderr, "         -f INTEGER      Offset 33(default) or 64\n.");
     fprintf(stderr, "         -l INTEGER      read length cut off (default %d)\n",DEFAULTLCUT);
     fprintf(stderr, "         -s FILE         FASTQ FILE for single read (read1 or read2) meeting MEEP score cut off\n");
+    fprintf(stderr, "         -t INTEGER      Truncate number of reads in output files\n");
     fprintf(stderr, "         -q              Append read quality to read comment\n");
     fprintf(stderr, "         -m              Append MEE to read comment\n");
     fprintf(stderr, "         -h              help\n");
@@ -29,6 +30,7 @@ int meeptools_filter(int argc, char *argv[])
     int l[2];
     int iflag=0;
     int oflag=0;
+    int tflag=0;
     int cflag=0;
     int mflag=0;
     int qflag=0;
@@ -51,6 +53,8 @@ int meeptools_filter(int argc, char *argv[])
     readSetStats rssIn[2];
     readSetStats rssOut[3];
     int nreads;
+    int nreadscut=0;
+    int nreadsout=0;
     
     char msg[STDSTRLEN];
     
@@ -63,7 +67,7 @@ int meeptools_filter(int argc, char *argv[])
         if (!readSetStatsInit(&rssOut[i])) ErrorMsgExit("failed initialization of read set!");
     }
     
-    while ((z = getopt(argc, argv, "i:f:o:c:l:s:mqh")) != -1)
+    while ((z = getopt(argc, argv, "i:f:o:c:l:s:t:mqh")) != -1)
     {
         switch (z)
         {
@@ -82,6 +86,10 @@ int meeptools_filter(int argc, char *argv[])
             sflag = 1;
             singleEndFastqOutFile = strdup(optarg);
             break;
+        case 't':
+            tflag = 1;
+            nreadscut = atoi(optarg);
+            break;
         case 'c':
             cflag=1;
             mcut = strtod(optarg,&msg);
@@ -92,7 +100,7 @@ int meeptools_filter(int argc, char *argv[])
         case 'q':
             cflag=1;
             break;
-	case 'l':
+		case 'l':
             lcut = atoi(optarg);
             break;
         case 'h':
@@ -224,6 +232,9 @@ int meeptools_filter(int argc, char *argv[])
      
     while (0==0)
     {
+    	
+    	if	( tflag && (nreadsout==nreadscut) ) break;
+    	
         l[0] = kseq_read(seq1);
         if (l[0] == -1) break;
         if (l[0] == -2)
@@ -275,6 +286,7 @@ int meeptools_filter(int argc, char *argv[])
             }
 	    if (!readSetStatsAddRead(&rssOut[0],l[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");
 	    if (!readSetStatsAddRead(&rssOut[1],l[1],readQual[1],mee[1])) ErrorMsgExit("failed adding read to read set!");            
+            nreadsout++;
             continue;
         }
 
@@ -285,6 +297,7 @@ int meeptools_filter(int argc, char *argv[])
                 ErrorMsgExit(msg);
             }
 	    if (!readSetStatsAddRead(&rssOut[2],l[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");   
+            nreadsout++;
             continue;
         }
 		
@@ -295,6 +308,7 @@ int meeptools_filter(int argc, char *argv[])
                 ErrorMsgExit(msg);
             }
 	    if (!readSetStatsAddRead(&rssOut[2],l[1],readQual[1],mee[1])) ErrorMsgExit("failed adding read to read set!");   
+            nreadsout++;
             continue;
         }
         
@@ -305,6 +319,7 @@ int meeptools_filter(int argc, char *argv[])
                 ErrorMsgExit(msg);
             }
 	    if (!readSetStatsAddRead(&rssOut[0],l[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");   
+            nreadsout++;
             continue;
         }
 	

@@ -289,6 +289,75 @@ int seqWriteToFileWithMateNumber(kseq_t *seq,gzFile fpout,double meep,double mee
     return 1;
 }
 
+int mykseqWriteToFile(mykseq *ks,gzFile *fpout,int write_mee,int write_readQual)
+{
+    char linebuffer[2 * MAXREADLENGTH];
+    char commentMEEPtmp[STDSTRLEN];
+    char commentMEEP[STDSTRLEN];
+    
+    
+    if (write_mee && write_readQual) {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f:QUAL=%.2f",ks->meep1,ks->mee1,ks->rq1);
+    }
+    else if(write_mee)
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f",ks->meep1,ks->mee1);
+    }
+    else if(write_readQual)
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f:QUAL=%.2f",ks->meep1,ks->rq1);
+    }
+    else
+    {
+        sprintf(commentMEEPtmp,"MEEP=%.4f",ks->meep1);
+    }
+    
+    if ((int)strlen(ks->comment1)>0)
+    {
+        sprintf(commentMEEP,"%s:%s",ks->comment1,commentMEEPtmp);
+    }
+    else
+    {
+        sprintf(commentMEEP,"%s",commentMEEPtmp);
+    }
+     
+    sprintf(linebuffer,"@%s %s\n%s\n+\n%s\n",ks->name1,commentMEEP,ks->bases1,ks->quality1);  
+    gzwrite(fpout[0],linebuffer,strlen(linebuffer));
+    
+    if (fpout[1]!=NULL) 
+    {
+		if (write_mee && write_readQual) {
+			sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f:QUAL=%.2f",ks->meep2,ks->mee2,ks->rq2);
+		}
+		else if(write_mee)
+		{
+			sprintf(commentMEEPtmp,"MEEP=%.4f:MEE=%.4f",ks->meep2,ks->mee2);
+		}
+		else if(write_readQual)
+		{
+			sprintf(commentMEEPtmp,"MEEP=%.4f:QUAL=%.2f",ks->meep2,ks->rq2);
+		}
+		else
+		{
+			sprintf(commentMEEPtmp,"MEEP=%.4f",ks->meep2);
+		}
+	
+		if ((int)strlen(ks->comment2)>0)
+		{
+			sprintf(commentMEEP,"%s:%s",ks->comment2,commentMEEPtmp);
+		}
+		else
+		{
+			sprintf(commentMEEP,"%s",commentMEEPtmp);
+		}
+	 
+		sprintf(linebuffer,"@%s %s\n%s\n+\n%s\n",ks->name2,commentMEEP,ks->bases2,ks->quality2);  
+		gzwrite(fpout[1],linebuffer,strlen(linebuffer));    
+    }
+    
+    return 1;
+}
+
 int seqWriteSubseqToFileWithMateNumber(kseq_t *seq, int newstart, int newl, gzFile fpout, double meep, double mee, double readQual, int write_mee, int write_readQual, int mate_number)
 {
     char linebuffer[2 * MAXREADLENGTH];

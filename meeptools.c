@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
     else if (strcmp(argv[1], "filter") == 0) return meeptools_filter(argc-1, argv+1);
     else if (strcmp(argv[1], "sort") == 0) return meeptools_sort(argc-1, argv+1);
     else if (strcmp(argv[1], "stats") == 0) return meeptools_stats(argc-1, argv+1);
-    else if (strcmp(argv[1], "subset") == 0) return meeptools_subset(argc-1, argv+1);
     else if (strcmp(argv[1], "trim") == 0) return meeptools_trim(argc-1, argv+1);
     else {
             fprintf(stderr, "[%s] unrecognized command '%s'\n", __func__,argv[1]);
