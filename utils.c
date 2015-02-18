@@ -92,13 +92,13 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
         HASH_FIND_STR(q2mee,q,s);
         mee[i]=s->MEE;
         meesorted[i]=mee[i];
-	summee+=mee[i];
-	readQual+=seq->qual.s[i];
-	for (j=0;j<l;j++)
-	{
-		summeeHash[i][j]=-1.0;
-	}
-	summeeCut[i]=mcut*(l-i)/100;
+		summee+=mee[i];
+		readQual+=seq->qual.s[i];
+		for (j=0;j<l;j++)
+		{
+			summeeHash[i][j]=-1.0;
+		}
+		summeeCut[i]=mcut*(l-i)/100;
     }
     
     *untrimmedMEE=summee;
@@ -173,7 +173,7 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int lcut,double mcut,int *news
 	    {
 	        readQual+=seq->qual.s[i];
 	    }
-	    readQual-=(l*'!');
+	    readQual-=((*newl)*'!');
     	*newReadQuality=readQual*1.0/(*newl);
     	printf("maxlen=%d, ",maxlen);
     	printf("newstart=%d, ",*newstart);
