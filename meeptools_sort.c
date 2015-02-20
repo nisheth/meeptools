@@ -72,8 +72,8 @@ int meeptools_sort(int argc, char *argv[])
             inputFastqstr = strdup(optarg);
             break;
         case 'f':
-        	offset = atoi(optarg);
-        	break;
+            offset = atoi(optarg);
+            break;
         case 'o':
             oflag = 1;
             outputFastqstr = strdup(optarg);
@@ -92,7 +92,7 @@ int meeptools_sort(int argc, char *argv[])
         case 'q':
             qflag=1;
             break;
-		case 'l':
+	case 'l':
             lcut = atoi(optarg);
             break;
         case 'h':

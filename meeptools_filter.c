@@ -98,9 +98,9 @@ int meeptools_filter(int argc, char *argv[])
             mflag=1;
             break;
         case 'q':
-            cflag=1;
+            qflag=1;
             break;
-		case 'l':
+	case 'l':
             lcut = atoi(optarg);
             break;
         case 'h':
