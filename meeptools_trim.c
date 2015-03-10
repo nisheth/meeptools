@@ -105,7 +105,7 @@ int meeptools_trim(int argc, char *argv[])
         case 'q':
             qflag=1;
             break;
-	case 'l':
+		case 'l':
             lcut = atoi(optarg);
             break;
         case 'h':
@@ -256,6 +256,7 @@ int meeptools_trim(int argc, char *argv[])
             seqIsInvalid(seq1,inputFastqs[0]);
         }
         
+        
         mee[0]=seqTrimCalculateMEEReadQuality(seq1,offset,lcut,mcut,&newstarttmp,&newltmp,&newReadQuality,&untrimmedMEE,&untrimmedReadQuality);
         readQual[0]=newReadQuality;
         newstart[0]=newstarttmp;
@@ -271,7 +272,7 @@ int meeptools_trim(int argc, char *argv[])
             {
                 ErrorMsg("Invalid sequence detected!");
                 seqIsInvalid(seq2,inputFastqs[1]);
-            }            
+            }     
             mee[1] = seqTrimCalculateMEEReadQuality(seq2,offset,lcut,mcut,&newstarttmp,&newltmp,&newReadQuality,&untrimmedMEE,&untrimmedReadQuality);
 	   		readQual[1] = newReadQuality;
 	   		newstart[1] = newstarttmp;
@@ -279,7 +280,9 @@ int meeptools_trim(int argc, char *argv[])
 	   		meep[1]=mee[1]*100.0/newl[1];
 	   		
 	    	if (!readSetStatsAddRead(&rssIn[1],l[1],untrimmedReadQuality,untrimmedMEE)) ErrorMsgExit("failed adding read to read set!");
+            if (l[1]<lcut) continue;       
         }
+        if (l[0]<lcut) continue;
         
         if(nreads%PRINTINTERVAL == 0)
 		{
@@ -288,6 +291,7 @@ int meeptools_trim(int argc, char *argv[])
 		}
 		nreads++;
         
+        if (nInputFastqs==2) {
 		if (mee[0]!=-1 && mee[1]!=-1) 
 		{
 		    if (!seqWriteSubseqToFileWithMateNumber(seq1,newstart[0],newl[0],fpout[0],meep[0],mee[0],readQual[0],mflag,qflag,0)) {
@@ -303,16 +307,7 @@ int meeptools_trim(int argc, char *argv[])
 			nreadsout++;
 			continue;
 		}
-		if (mee[0]!=-1 && !sflag)
-		{
-		    if (!seqWriteSubseqToFileWithMateNumber(seq1,newstart[0],newl[0],fpout[0],meep[0],mee[0],readQual[0],mflag,qflag,0)) {
-                sprintf(msg,"Writing seqid %s to file %s failed!",seq1->name.s,outputFastqs[0]);
-                ErrorMsgExit(msg);
-            }
-        	if (!readSetStatsAddRead(&rssOut[0],newl[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");
-			nreadsout++;
-			continue;
-		}
+
 		if (mee[0]!=-1 && sflag)
 		{
 		    if (!seqWriteSubseqToFileWithMateNumber(seq1,newstart[0],newl[0],singleEndFastqOutFile,meep[0],mee[0],readQual[0],mflag,qflag,0)) {
@@ -333,7 +328,20 @@ int meeptools_trim(int argc, char *argv[])
 			nreadsout++;
 			continue;
 		}
+		continue;
+		}
 
+		if (mee[0]!=-1)
+		{
+		    if (!seqWriteSubseqToFileWithMateNumber(seq1,newstart[0],newl[0],fpout[0],meep[0],mee[0],readQual[0],mflag,qflag,0)) {
+                sprintf(msg,"Writing seqid %s to file %s failed!",seq1->name.s,outputFastqs[0]);
+                ErrorMsgExit(msg);
+            }
+        	if (!readSetStatsAddRead(&rssOut[0],newl[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");
+			nreadsout++;
+			continue;
+		}
+		
     }
     
     kseq_destroy(seq1);

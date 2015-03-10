@@ -98,9 +98,9 @@ int meeptools_filter(int argc, char *argv[])
             mflag=1;
             break;
         case 'q':
-            qflag=1;
+            cflag=1;
             break;
-	case 'l':
+		case 'l':
             lcut = atoi(optarg);
             break;
         case 'h':
@@ -273,8 +273,8 @@ int meeptools_filter(int argc, char *argv[])
 	}
 
         nreads++; // nreads increment has to be before any of the continue statements!
-	
-	if ((meep[0] < mcut) && (meep[1] < mcut) && (l[0] > lcut) && (l[1] > lcut) ) // this condition is true always if meep[0] and meep[1] are initialized to 0. Hence initialized to 21.
+	if (nInputFastqs==2){
+		if ((meep[0] < mcut) && (meep[1] < mcut) && (l[0] > lcut) && (l[1] > lcut) ) // this condition is true always if meep[0] and meep[1] are initialized to 0. Hence initialized to 21.
         {
             if (!seqWriteToFileWithMateNumber(seq1,fpout[0],meep[0],mee[0],readQual[0],mflag,qflag,0)) {
                 sprintf(msg,"Writing seqid %s to file %s failed!",seq1->name.s,outputFastqs[0]);
@@ -311,17 +311,18 @@ int meeptools_filter(int argc, char *argv[])
             nreadsout++;
             continue;
         }
-        
+    continue;
+    }    
 	if ((meep[0] < mcut) && !sflag && (l[0] > lcut))
-        {
-            if (!seqWriteToFileWithMateNumber(seq1,fpout[0],meep[0],mee[0],readQual[0],mflag,qflag,0)) {
-                sprintf(msg,"Writing seqid %s to file %s failed!",seq1->name.s,outputFastqs[0]);
-                ErrorMsgExit(msg);
-            }
-	    if (!readSetStatsAddRead(&rssOut[0],l[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");   
-            nreadsout++;
-            continue;
-        }
+	{
+		if (!seqWriteToFileWithMateNumber(seq1,fpout[0],meep[0],mee[0],readQual[0],mflag,qflag,0)) {
+			sprintf(msg,"Writing seqid %s to file %s failed!",seq1->name.s,outputFastqs[0]);
+			ErrorMsgExit(msg);
+		}
+		if (!readSetStatsAddRead(&rssOut[0],l[0],readQual[0],mee[0])) ErrorMsgExit("failed adding read to read set!");   
+			nreadsout++;
+			continue;
+		}
 	
     }
     

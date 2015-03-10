@@ -69,6 +69,7 @@ double seqTrimCalculateMEEReadQuality(kseq_t *seq,int offset,int lcut,double mcu
     *newstart=-1;
     *newl=-1;
     
+        
     for (i=0;i<l;i++) 
     {
         k=(int)seq->qual.s[i];
@@ -217,12 +218,12 @@ int readSetStatsUpdate(readSetStats *rss)
 
 void readSetStatsPrintHeader()
 {
-    fprintf(stdout,"\nNreads\tPercent_reads\tNbases\tPercent_bases\tminRL\tmaxRL\tavgRL\tavgRQ\toverallMEEP\tNreads_MEEP1\tNreads_MEEP2\tDescription\n\n");
+    fprintf(stdout,"\nNreads\tPercent_reads\tNbases\tPercent_bases\tminRL\tmaxRL\tavgRL\tavgRQ\toverallMEEP\t(Q equivalent)\tNreads_MEEP1\tNreads_MEEP2\tDescription\n\n");
 }
 
 void readSetStatsPrint(readSetStats *rss,readSetStats *rssBase,char *desc)
 {
-	fprintf(stdout,"%llu\t%.2f\t%llu\t%.2f\t%u\t%u\t%.2f\t%.2f\t%.4f\t%llu\t%llu\t%s\n", \
+	fprintf(stdout,"%llu\t%.2f\t%llu\t%.2f\t%u\t%u\t%.2f\t%.2f\t%.4f\t%d\t%llu\t%llu\t%s\n", \
 	rss->nreads, \
 	(rss->nreads*1.0/rssBase->nreads)*100.0, \
 	rss->nbases, \
@@ -232,6 +233,7 @@ void readSetStatsPrint(readSetStats *rss,readSetStats *rssBase,char *desc)
 	rss->avgRL, \
 	rss->avgRQ, \
 	rss->overallMEEP, \
+	(int) (-10 * log10 (rss->overallMEEP/100.0)), \
 	rss->nreads_meep1, \
 	rss->nreads_meep2, \
 	desc);
