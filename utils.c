@@ -218,7 +218,7 @@ int readSetStatsUpdate(readSetStats *rss)
 
 void readSetStatsPrintHeader()
 {
-    fprintf(stdout,"\nNreads\tPercent_reads\tNbases\tPercent_bases\tminRL\tmaxRL\tavgRL\tavgRQ\toverallMEEP\t(Q equivalent)\tNreads_MEEP1\tNreads_MEEP2\tDescription\n\n");
+    fprintf(stdout,"\nNreads\tPercent_reads\tNbases\tPercent_bases\tminRL\tmaxRL\tavgRL\tavgRQ\toverallMEEP\tNreads_MEEP1\tNreads_MEEP2\tDescription\n\n");
 }
 
 void readSetStatsPrint(readSetStats *rss,readSetStats *rssBase,char *desc)
@@ -233,7 +233,6 @@ void readSetStatsPrint(readSetStats *rss,readSetStats *rssBase,char *desc)
 	rss->avgRL, \
 	rss->avgRQ, \
 	rss->overallMEEP, \
-	(int) (-10 * log10 (rss->overallMEEP/100.0)), \
 	rss->nreads_meep1, \
 	rss->nreads_meep2, \
 	desc);
