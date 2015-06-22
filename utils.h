@@ -4,6 +4,10 @@
 #include<unistd.h>
 //#include <stdlib.h>
 
+#ifndef NBINS 31
+#define NBINS 31
+#endif
+
 int file_exists(const char* filename);
 
 typedef struct
@@ -14,7 +18,7 @@ typedef struct
     double sumavgqual;
     unsigned int minRL;
     unsigned int maxRL;
-    
+    unsigned int meepbins[31]; // 31 bins with binwidth of 0.1 meep    
     unsigned long long int nreads_meep1;
     unsigned long long int nreads_meep2;
     
@@ -61,6 +65,8 @@ int readSetStatsInit(readSetStats *rss);
 int readSetStatsAddRead(readSetStats *rss,int rl,double rq,double mee);
 int readSetStatsUpdate(readSetStats *rss);
 void readSetStatsPrintHeader();
+void readSetStatsPrintHist(readSetStats *rss,char *fastqFilename);
+void readSetStatsPrintJson(readSetStats *rss,char *fastqFilename);
 void readSetStatsPrint(readSetStats *rss,readSetStats *rssBase,char *desc);
 int str_split( char * str, char delim, char ***array, int *length );
 int mykseqWriteToFile(mykseq *ks,gzFile *fpout,int write_mee,int write_readQual);

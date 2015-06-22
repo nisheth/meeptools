@@ -169,6 +169,7 @@ double seqCalculateQScoreExtra(kseq_t *seq,int offset,int *l70q20,int *l70q25,in
 
 int readSetStatsInit(readSetStats *rss)
 {
+    int nbin;
     rss->nreads=0;
     rss->nbases=0;
     rss->summee=0.0;
@@ -183,16 +184,26 @@ int readSetStatsInit(readSetStats *rss)
     rss->nreads_meep2=0;
     rss->pmeep1=0.0;
     rss->pmeep2=0.0;
+    for (nbin=0;nbin<NBINS;nbin++)
+    {
+         rss->meepbins[nbin]=0;
+    }
     
     return 1;
 }
 
 int readSetStatsAddRead(readSetStats *rss,int rl,double rq,double mee)
 {
+    int nbin;
     rss->nreads++;
     rss->nbases+=rl;
     rss->summee+=mee;
     rss->sumavgqual+=rq;
+    
+    nbin=(int)(mee*1000.0/rl); // int(meep * 10) is the bin number
+    if (nbin>(NBINS-1)) 
+    {nbin=(NBINS-1);}
+    rss->meepbins[nbin]++;
     
     if (rl>rss->maxRL) rss->maxRL=rl;
     if (rl<rss->minRL) rss->minRL=rl;
@@ -223,7 +234,7 @@ void readSetStatsPrintHeader()
 
 void readSetStatsPrint(readSetStats *rss,readSetStats *rssBase,char *desc)
 {
-	fprintf(stdout,"%llu\t%.2f\t%llu\t%.2f\t%u\t%u\t%.2f\t%.2f\t%.4f\t%d\t%llu\t%llu\t%s\n", \
+	fprintf(stdout,"%llu\t%.2f\t%llu\t%.2f\t%u\t%u\t%.2f\t%.2f\t%.4f\t%llu\t%llu\t%s\n", \
 	rss->nreads, \
 	(rss->nreads*1.0/rssBase->nreads)*100.0, \
 	rss->nbases, \
@@ -475,5 +486,82 @@ int main() {
 }
  */
 
+void readSetStatsPrintHist(readSetStats *rss, char *fastqFilename)
+{
+	int nbin;
+	float percnow,perccum;
+	char jsonFilename[500];
+	perccum=0.0;
+	FILE *jf;
+	sprintf(jsonFilename,"%s.meephist",fastqFilename);
+	jf=fopen(jsonFilename,"w");
+	fprintf(jf,"#MEEP\tCOUNT\tPERCENTAGE\tCUM.PERCENTAGE\n");
+	for (nbin=0;nbin<NBINS;nbin++) 
+	{
+		percnow=rss->meepbins[nbin]*100.0/rss->nreads;
+		perccum=perccum+percnow;
+		//printf("%.1f\t%.2f\t%.2f\n",(nbin+1)/10.0,percnow,perccum);
+		fprintf(jf,"%.1f\t%d\t%.2f\t%.2f\n",(nbin+1)/10.0,rss->meepbins[nbin],percnow,perccum);
+	}
+	close(jf);
+}
 
-
+void readSetStatsPrintJson(readSetStats *rss,char *fastqFilename)
+{
+	int nbin;
+	float bin;
+	float percnow,perccum;
+	char jsonFilename[500];
+	FILE *jf;
+	readSetStatsUpdate(rss);
+	sprintf(jsonFilename,"%s.json",fastqFilename);
+	jf=fopen(jsonFilename,"w");
+	fprintf(jf,"{\"%s\": {\n",fastqFilename);
+	fprintf(jf,"\"nreads\": %llu,\n",rss->nreads);
+	fprintf(jf,"\"nreads_meep1\": %llu,",rss->nreads_meep1);	
+	fprintf(jf,"\"pmeep1\": %.2f,\n",rss->pmeep1);	
+	fprintf(jf,"\"nreads_meep2\": %llu,",rss->nreads_meep2);
+	fprintf(jf,"\"pmeep1\": %.2f,\n",rss->pmeep2);	
+	fprintf(jf,"\"nbases\": %llu,\n",rss->nbases);	
+	fprintf(jf,"\"summee\": %f,\n",rss->summee);
+	fprintf(jf,"\"sumavgqual\": %f,\n",rss->sumavgqual);
+	fprintf(jf,"\"minRL\": %u,\n",rss->minRL);
+	fprintf(jf,"\"maxRL\": %u,\n",rss->maxRL);
+	fprintf(jf,"\"avgRL\": %d,\n",(int)(rss->nbases*1.0/rss->nreads));
+	fprintf(jf,"\"avgRQ\": %d,\n",(int)(rss->sumavgqual*1.0/rss->nreads));
+	fprintf(jf,"\"overallMEEP\": %.2f\n,",rss->summee*100.0/rss->nbases);
+	fprintf(jf,"\"NBINS\": %d,\n",NBINS);
+	fprintf(jf,"\"meepbins\": [%0.2f",0.0);
+	bin=0.1;
+	for (nbin=1;nbin<NBINS;nbin++)
+	{
+	    bin=bin+0.1;
+		fprintf(jf,",%0.1f",bin);
+	}
+	fprintf(jf,"],\n");
+	fprintf(jf,"\"meepbinscounts\": [%d",rss->meepbins[0]);
+	for (nbin=1;nbin<NBINS;nbin++)
+	{
+		fprintf(jf,",%u",rss->meepbins[nbin]);
+	}
+	fprintf(jf,"],\n");
+	percnow=rss->meepbins[0]*100.0/rss->nreads;
+	fprintf(jf,"\"meepbinspercnow\": [%.2f",percnow);
+	for (nbin=1;nbin<NBINS;nbin++)
+	{
+		percnow=rss->meepbins[nbin]*100.0/rss->nreads;
+		fprintf(jf,",%.2f",percnow);
+	}
+	fprintf(jf,"],\n");
+	perccum=rss->meepbins[0]*100.0/rss->nreads;
+	fprintf(jf,"\"meepbinsperccum\": [%.2f",perccum);
+	for (nbin=1;nbin<NBINS;nbin++)
+	{
+		percnow=rss->meepbins[nbin]*100.0/rss->nreads;
+		perccum=perccum+percnow;
+		fprintf(jf,",%.2f",perccum);
+	}
+	fprintf(jf,"]\n");	
+	fprintf(jf,"}\n}\n");
+	close(jf);
+}

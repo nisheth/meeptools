@@ -18,7 +18,11 @@ int meeptools_stats(int argc, char *argv[])
     int i,c,l,l70q20,l70q25,l70q30,offset=33;
     int iflag=0;
     int sflag=0;
+    int jflag=0;
+    int dflag=0;
     char *fastqFilename;
+    char jsonFilename[500];
+    FILE *jf;
     gzFile fp;
     kseq_t *seq;
     double readQual=0.0;
@@ -39,7 +43,7 @@ int meeptools_stats(int argc, char *argv[])
         }
     }
         
-    while ((c = getopt(argc, argv, "i:f:sh?")) != -1)
+    while ((c = getopt(argc, argv, "i:f:sjdh?")) != -1)
     {
         switch (c)
         {
@@ -49,6 +53,12 @@ int meeptools_stats(int argc, char *argv[])
             break;
         case 's':
             sflag = 1;
+            break;
+        case 'd':
+            dflag = 1;
+            break;
+        case 'j':
+            jflag = 1;
             break;
         case 'f':
             offset = atoi(optarg);
@@ -204,7 +214,16 @@ int meeptools_stats(int argc, char *argv[])
         readSetStatsPrint(&allReadSetStats[i],&allReadSetStats[RSALL],readSetDescriptions[i]);
     }    
     
-    
+    if (dflag) {
+        readSetStatsPrintHist(&allReadSetStats[RSALL],fastqFilename);
+	}
+	
+	if (jflag) {
+		//sprintf(jsonFilename,"%s.json",fastqFilename);
+		//jf=fopen(jsonFilename,"w");
+        readSetStatsPrintJson(&allReadSetStats[RSALL],fastqFilename);
+        //fclose(jf);
+    }
     return 1;
 }
 
