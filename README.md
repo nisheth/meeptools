@@ -22,9 +22,9 @@ Command: append      append MEEP score to FASTQ file
 
 * MEEPTOOLS takes one or more FASTQ files as input and writes output to screen and/or disk.
 
-* FASTQ files are written to disk as output are in gzipped format for efficient disk utilization.
+* FASTQ files written to disk as output are in gzipped format for efficient disk utilization.
 
-* MEEPTOOLS expects FASTQ files to have encoded the quality with the offset of 33 (Sanger), but older offset of 64 can be entered with the –f option.
+* MEEPTOOLS expects FASTQ files to have encoded quality with the offset of 33 (Sanger), but older offset of 64 can be entered with the –f option.
 
 * MEEPTOOLS uses the FASTQ sequence object from the htslib (http://www.htslib.org/) to read/store/access/edit/write read sequences in the memory (and to the disk).
 

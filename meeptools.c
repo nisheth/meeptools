@@ -10,7 +10,6 @@ static int usage()
     fprintf(stderr, "         filter      filter FASTQ file based on MEEP score\n");
     fprintf(stderr, "         sort        sort reads by MEEP score\n");
     fprintf(stderr, "         stats       MEEP score based stats for FASTQ file\n");
-    fprintf(stderr, "         subset      get a subset of reads based on MEEP score\n");        
     fprintf(stderr, "         trim        trim reads based on MEEP score\n");
     fprintf(stderr, "\n");
     return 1;
