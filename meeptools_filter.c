@@ -7,7 +7,7 @@ static int meeptools_filter_usage(int extra)
     fprintf(stderr, "         -o FILE         FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -c FLOAT        MEEP score cut off (between 0 and 20)\n");
     fprintf(stderr, "Optional:\n");
-    fprintf(stderr, "         -f INTEGER      Offset 33(default) or 64\n.");
+    fprintf(stderr, "         -f INTEGER      Offset 33(default) or 64\n");
     fprintf(stderr, "         -l INTEGER      read length cut off (default %d)\n",DEFAULTLCUT);
     fprintf(stderr, "         -s FILE         FASTQ FILE for single read (read1 or read2) meeting MEEP score cut off\n");
     fprintf(stderr, "         -t INTEGER      Truncate number of reads in output files\n");

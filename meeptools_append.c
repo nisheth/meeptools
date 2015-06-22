@@ -6,7 +6,7 @@ static int meeptools_append_usage(int extra)
     fprintf(stderr, "Options: -i FILE  FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "         -o FILE  FASTQ FILE(S) ... for paired-end read1 and read2 files should be comma separated\n");
     fprintf(stderr, "Optional:\n");
-    fprintf(stderr, "         -f INT   Offset 33(default) or 64\n.");
+    fprintf(stderr, "         -f INT   Offset 33(default) or 64\n");
     fprintf(stderr, "         -q       Append read quality to read comment\n");
     fprintf(stderr, "         -m       Append MEE to read comment\n");
     fprintf(stderr, "         -h       help\n");

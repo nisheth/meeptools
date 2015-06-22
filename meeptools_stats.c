@@ -7,7 +7,7 @@ static int meeptools_stats_usage()
     fprintf(stderr, "Usage:   meeptools stats [options] \n\n Generates MEEP score and other stats for fastq file.\n\n");
     fprintf(stderr, "Options: -i FILE  FASTQ FILE\n");
     fprintf(stderr, "         -s       Output subset stats also.\n");
-    fprintf(stderr, "         -f INT   Offset 33(default) or 64 (Optional)\n.");
+    fprintf(stderr, "         -f INT   Offset 33(default) or 64 (Optional).\n");
     fprintf(stderr, "         -h       help\n");
     fprintf(stderr, "\n");
     return 1;
