@@ -86,7 +86,7 @@ Optional:
 
 MEEPTOOLS performance was tested using SRA datasets: SRR502985<sup>**</sup>(set1) and SRR1290425(set2). Both these datasets are paired-end.
 
-| Dataset | ReadLength | stats<sup>*</sup> | filter<sup>*</sup> | sort<sup>*</sup> |
+| Dataset | ReadLength | stats<sup>*</sup> | filter<sup>*</sup> | trim<sup>*</sup> |
 |---------|------------|-------------------|--------------------|------------------|
 | [set1](http://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR502985)    | 101        | 3060              | 770                | 470              |
 | [set2](http://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR1290425)    | 251        | 1050              | 207                | 183              |
