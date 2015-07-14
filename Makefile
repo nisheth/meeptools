@@ -1,6 +1,6 @@
 CC=		gcc
 
-CFLAGS=		-static -g -Wall -O1 -m64 
+CFLAGS=		-g -Wall -O1 -m64 
 
 CFLAGS+=	-DDEBUG
 

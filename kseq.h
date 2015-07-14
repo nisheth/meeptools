@@ -29,7 +29,7 @@ SOFTWARE.
 #define AC_KSEQ_H
 
 #ifndef MAXREADLENGTH
-#define MAXREADLENGTH 500
+#define MAXREADLENGTH 10000
 #endif
 
 #include <ctype.h>
