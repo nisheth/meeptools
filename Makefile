@@ -2,7 +2,7 @@ CC=		gcc
 
 CFLAGS=		-g -Wall -O1 -m64 
 
-CFLAGS+=	-DDEBUG
+CFLAGS+=	-DDEBUG -DHASH_FUNCTION=HASH_FNV
 
 LFLAGS=		-lm -lz
 
