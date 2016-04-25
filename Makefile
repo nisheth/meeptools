@@ -1,18 +1,14 @@
 CC=		gcc
 
-CFLAGS=		-g -Wall -O1 -m64 
+CFLAGS=		-Wall -O3 -m64
 
 CFLAGS+=	-DDEBUG -DHASH_FUNCTION=HASH_FNV
 
-LFLAGS=		-lm -lz
+LFLAGS=		-lpthread -lm -lz
 
-SRCS = 		utils.c \
-		meeptools_stats.c \
-		meeptools_append.c \
-		meeptools_filter.c \
-		meeptools_sort.c \
-		meeptools_trim.c \
-		meeptools.c
+SRCS = 		meeptools.c \
+		kthread.c \
+		bseq.c
 
 OBJS=		$(SRCS:.c=.o)
 
