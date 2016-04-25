@@ -1,6 +1,6 @@
 # MEEPTOOLS
 ---
-This is a test.
+This is an older branch... To many optimization and "from-scratch" changes made in the new master branch .
 A Collection of tools for NGS Quality Evaluation, Filtering and Trimming based on MEEP score, which considers the maximum expected error rate of the basecalls in a read rather than looking at the average PHRED Q score of the read.
 
 ---
