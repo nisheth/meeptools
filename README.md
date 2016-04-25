@@ -12,8 +12,9 @@ make
 ```
 If everything goes well, this is produce a "meeptools" executable in the current folder, which is ready to use!
 ###Dependencies
+Without these libraries, the compilation of MEEPTOOLS will fail:
 + gcc standard math library (-lm) . This is generally pre-installed on all linux like systems
 + gcc pthread library (-lpthread) . This is required for taking advantage of multi-threading and making MEEPTOOLS significantly faster.
 + gcc libz library (-lz). This is required for reading and writing from gzipped files directly.
-Without these libraries, the compilation of MEEPTOOLS will fail!
+
 ##Running MEEPTOOLS
